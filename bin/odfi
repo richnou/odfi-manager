@@ -1,0 +1,193 @@
+#!/usr/bin/env tclsh
+
+## Load Private Dependencies
+##  - Use explicit sourcing here to avoid environment hack with normal installation
+#####################
+
+set managerHome [file normalize [file dirname [info script]]/../]
+
+## ODFI Dev TCL
+source $managerHome/private/odfi-dev-tcl/tcl/common.tm
+source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
+source $managerHome/private/odfi-dev-tcl/tcl/closures-2.0.0.tm
+source $managerHome/private/odfi-dev-tcl/tcl/list-2.0.0.tm
+source $managerHome/private/odfi-dev-tcl/tcl/tool-1.0.0.tm
+
+## Local definitions
+source $managerHome/private/module.tm
+
+## Load Available modules configuration
+####################
+source $managerHome/modules.config
+
+
+## List Installed modules 
+####################
+set allModules [glob -types d -nocomplain $managerHome/install/*]
+foreach installedModulePath $allModules {
+
+	## Create Installed 
+	#####################
+	set name [file tail $installedModulePath]
+	set installedModule [::new odfi::manager::InstalledModule ${name}.installed $installedModulePath]
+
+
+	odfi::common::println "Installed module: $name"
+
+}
+
+## Go on
+################
+odfi::tool::describe {
+
+	set description "
+
+Odfi Module Manager:
+
+	- Install/Update module 
+	- Load modules to environment 
+"
+
+	argument list optional description "List available modules, versions and installed one"
+
+	argument load optional description "Load installation"
+
+	argument install type string optional description "Install or update a module"
+
+	argument update optional description "Tries to Update all the modules"
+
+	argument clone optional description "Clone"
+
+
+}
+
+tool parseArguments
+
+
+#### List 
+##########################
+if {$list} {
+
+	puts "Listing available modules:"
+	odfi::common::printlnIndent
+	foreach module [itcl::find objects -class odfi::manager::Module] {
+
+		odfi::common::println "Module : [$module name]"
+
+		odfi::common::printlnIndent
+		
+		## Basic Infos
+		odfi::common::println "- URL: [$module url]"
+
+		## Installation paths 
+		#############
+		if {[$module isInstalled]} {
+			odfi::common::println "- Installed: yes"
+
+			set installedModule [$module getInstalledModule]
+			$installedModule printInfos
+
+			
+
+		} else {
+			odfi::common::println "- Installed: no"
+		}
+
+		odfi::common::printlnOutdent
+		
+
+	}
+
+	odfi::common::printlnOutdent
+
+}
+
+#### Install 
+#####################
+if {$update} {
+
+	odfi::common::println "Updating modules"
+	odfi::common::printlnIndent
+	foreach installedModule [itcl::find objects -class odfi::manager::InstalledModule] {
+
+		odfi::common::println "- [$installedModule name]"
+		$installedModule update
+
+	}
+	odfi::common::printlnOutdent
+
+	## Check argument validity
+	###########
+	if {[llength [itcl::find objects $install]]==0} {
+
+		odfi::common::println "Module $install is not present in config file..."
+		exit 0
+	} 
+
+
+	## Update/Install 
+	#####################
+	$install update
+
+
+}
+
+#### Install 
+#####################
+if {$install!=false} {
+
+	odfi::common::println "Installing module: $install"
+
+	## Check argument validity
+	###########
+	if {[llength [itcl::find objects $install]]==0} {
+
+		odfi::common::println "Module $install is not present in config file..."
+		exit 0
+	} 
+
+
+	## Update/Install 
+	#####################
+	$install update
+
+
+}
+
+
+#### Load 
+#####################
+if {$load} {
+
+	puts "Loading ODFI"
+
+
+	## Load Modules
+	##############################""
+	odfi::manager::LoadResult loadResult
+
+	foreach installedModule [itcl::find objects ::*.installed] {
+
+		## Call Load on module 
+		################
+		$installedModule doLoad loadResult
+
+	}
+
+	## Output result to underlying command line 
+	############
+	puts "Load res: [loadResult toBash]"
+	
+}
+
+
+#### Clone
+####################
+if {$clone} {
+
+	puts "
+WARNING: This will duplicate this module manager to specified location
+This feature is intended for developer who want to locally override a module installation
+"
+
+}
