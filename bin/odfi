@@ -266,6 +266,11 @@ parent central $managerHome
 "
 
 			## Boostrap
+			odfi::os::onOs {
+				linux* {
+					$location/setup.linux.bash
+				}
+			}
 			
 		}
 		default {
