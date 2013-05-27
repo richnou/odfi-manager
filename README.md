@@ -28,9 +28,9 @@ If a developer wants to edit an ODFI module, and there is a central odfi install
 ## Module Manager implementation
 
 This manager is an entry point to the system, meaning it shouldn't have complex dependencies,
-ore impose some for the installation.
+or impose some for the installation.
 
-Typically, that would mean we should stick to basic scripting (like bash), but then it becomes more difficult to support more various systems. 
+Typically, that would mean we should stick to basic scripting (like bash), but then it becomes more difficult to support more various systems, and complex helpful usage scenarios
 
 The approach chosen is to implement the module manager like this:
 
@@ -43,3 +43,25 @@ The approach chosen is to implement the module manager like this:
 
 - private/ : Contains dependencies and stuff only used by and for module manager
 - install/ : Contains the installed modules. This is the odfi installation
+
+
+# Hierarchical Install
+
+ODFI Module manager can work hierarchically, which means that it can load installed modules from one or more other installations
+
+
+# Extending available modules configuration
+
+# Config Files Reference
+
+## odfi.*.config
+
+This is the local manager configuration file.
+The content of those files are executed on the target installation configuration in the listing order, so beware of overridings!
+
+Here are the available configuration constructs:
+
+- parent "/path/to/other/manager"
+
+This references the path to another manager base folder or config file
+The local manager will load modules definitions and installed modules from the parent manager

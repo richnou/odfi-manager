@@ -6,35 +6,22 @@
 
 set managerHome [file normalize [file dirname [info script]]/../]
 
-## ODFI Dev TCL
+#### ODFI Dev TCL
 source $managerHome/private/odfi-dev-tcl/tcl/common.tm
 source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
 source $managerHome/private/odfi-dev-tcl/tcl/closures-2.0.0.tm
 source $managerHome/private/odfi-dev-tcl/tcl/list-2.0.0.tm
 source $managerHome/private/odfi-dev-tcl/tcl/tool-1.0.0.tm
+source $managerHome/private/odfi-dev-tcl/tcl/os-1.0.0.tm
 
 ## Local definitions
 source $managerHome/private/module.tm
 
-## Load Available modules configuration
+## Load ODFI configuration (config and installed modules)
 ####################
-source $managerHome/modules.config
+::new odfi::manager::ODFI odfi $managerHome
 
 
-## List Installed modules 
-####################
-set allModules [glob -types d -nocomplain $managerHome/install/*]
-foreach installedModulePath $allModules {
-
-	## Create Installed 
-	#####################
-	set name [file tail $installedModulePath]
-	set installedModule [::new odfi::manager::InstalledModule ${name}.installed $installedModulePath]
-
-
-	odfi::common::println "Installed module: $name"
-
-}
 
 ## Go on
 ################
@@ -44,9 +31,11 @@ odfi::tool::describe {
 
 Odfi Module Manager:
 
-	- Install/Update module 
-	- Load modules to environment 
+	- Install/Update module
+	- Load modules to environment
 "
+
+	argument info optional description "Provide some general infos about installation"
 
 	argument list optional description "List available modules, versions and installed one"
 
@@ -56,6 +45,8 @@ Odfi Module Manager:
 
 	argument update optional description "Tries to Update all the modules"
 
+	argument setup type string optional description "Call setup on specified module name"
+
 	argument clone optional description "Clone"
 
 
@@ -64,22 +55,29 @@ Odfi Module Manager:
 tool parseArguments
 
 
-#### List 
+#### Info
 ##########################
-if {$list} {
+if {$info} {
 
+	## Current Version
+	##############
+	odfi::common::println "Current Version: [odfi::git::current-branch $managerHome]"
+
+
+	#### List
+	##########################
 	puts "Listing available modules:"
 	odfi::common::printlnIndent
-	foreach module [itcl::find objects -class odfi::manager::Module] {
+	odfi eachModule {
 
 		odfi::common::println "Module : [$module name]"
 
 		odfi::common::printlnIndent
-		
+
 		## Basic Infos
 		odfi::common::println "- URL: [$module url]"
 
-		## Installation paths 
+		## Installation paths
 		#############
 		if {[$module isInstalled]} {
 			odfi::common::println "- Installed: yes"
@@ -87,22 +85,25 @@ if {$list} {
 			set installedModule [$module getInstalledModule]
 			$installedModule printInfos
 
-			
+
 
 		} else {
 			odfi::common::println "- Installed: no"
 		}
 
 		odfi::common::printlnOutdent
-		
+
 
 	}
 
 	odfi::common::printlnOutdent
 
+	exit 1
 }
 
-#### Install 
+
+
+#### Update
 #####################
 if {$update} {
 
@@ -122,17 +123,19 @@ if {$update} {
 
 		odfi::common::println "Module $install is not present in config file..."
 		exit 0
-	} 
+	}
 
 
-	## Update/Install 
+	## Update/Install
 	#####################
 	$install update
 
 
+	exit 1
+
 }
 
-#### Install 
+#### Install
 #####################
 if {$install!=false} {
 
@@ -144,18 +147,46 @@ if {$install!=false} {
 
 		odfi::common::println "Module $install is not present in config file..."
 		exit 0
-	} 
+	}
 
 
-	## Update/Install 
+	## Update/Install
 	#####################
 	$install update
 
 
+	exit 1
+
 }
 
 
-#### Load 
+#### Setup
+#####################
+if {$setup!=false} {
+
+	odfi::common::println "Setup module: $setup"
+
+	## Check argument validity
+	###########
+	if {[llength [itcl::find objects $setup]]==0} {
+
+		odfi::common::println "Module $setup is not present in config file..."
+		exit 0
+	}
+	if {[llength [itcl::find objects ${setup}.installed]]==0} {
+
+		odfi::common::println "Module $setup is not installed..."
+		exit 0
+	}
+
+	${setup}.installed doSetup
+
+
+	exit 1
+
+}
+
+#### Load
 #####################
 if {$load} {
 
@@ -168,16 +199,18 @@ if {$load} {
 
 	foreach installedModule [itcl::find objects ::*.installed] {
 
-		## Call Load on module 
+		## Call Load on module
 		################
 		$installedModule doLoad loadResult
 
 	}
 
-	## Output result to underlying command line 
+	## Output result to underlying command line
 	############
 	puts "Load res: [loadResult toBash]"
-	
+
+
+	exit 1
 }
 
 
@@ -190,4 +223,9 @@ WARNING: This will duplicate this module manager to specified location
 This feature is intended for developer who want to locally override a module installation
 "
 
+	exit 1
+
 }
+
+
+tool usage

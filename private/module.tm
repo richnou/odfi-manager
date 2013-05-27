@@ -3,32 +3,115 @@ namespace eval odfi::manager {
 
 
 
-	## List of current nested groups for module configuration grouping
-	set groupPath {}
-	proc ::group {name closure} {
-
-		lappend odfi::manager::groupPath $name 
-
-		odfi::closures::doClosure $closure
 
 
-		set groupPath [lreplace $odfi::manager::groupPath end end]
-	}
 
-	proc ::module {name closure} {
-		
-		
-		## Create Module 
-		#######
-		set module [::new odfi::manager::Module [join [concat $odfi::manager::groupPath $name] -] $closure]
+	## ODFi: Describe configuration of a manager
+	#############################
+	itcl::class ODFI {
 
-		return $module
+		## A Custom name of this manager
+		public variable name "local"
+
+		## Folder base path of ODFI (can be file of something else)
+		public variable managerHome ""
+
+		## List of current nested groups for module configuration grouping
+		public variable groupPath {}
+
+		## The defined Modules
+		public variable modules {}
+
+		## The installed Modules
+		public variable installedModules {}
+
+		## Build ODFI With a location
+		constructor cHomePath {
+
+			## Defaults
+			###############
+			set managerHome $cHomePath
+			#set name 		[string range $this 2 end]
+
+			## Apply Config files
+			#############
+			foreach configFile [glob -types f -nocomplain $managerHome/odfi*.config] {
+				applyFile $configFile
+			}
+
+			## Installed modules
+			####################
+			set allModules [glob -types d -nocomplain $managerHome/install/*]
+			foreach installedModulePath $allModules {
+
+				## Create Installed
+				#####################
+				set name [file tail $installedModulePath]
+				set installedModule [::new odfi::manager::InstalledModule ${name}.installed $installedModulePath]
+
+				lappend installedModules $installedModule
+
+				#odfi::common::println "Installed module: $name"
+
+			}
+
+
+		}
+
+		public method applyFile file {
+
+			odfi::closures::doFile $file
+
+		}
+
+		## Module config
+		######################
+
+		public method group {name closure} {
+
+			lappend groupPath $name
+
+			odfi::closures::doClosure $closure
+
+
+			set groupPath [lreplace $groupPath end end]
+		}
+
+		public method module {name closure} {
+
+
+			## Create Module
+			#######
+			set module [::new odfi::manager::Module [join [concat $groupPath $name] -] $closure]
+
+			lappend modules $module
+
+			return $module
+
+		}
+
+		## Executes closure on each configured module, with $module available as variable for current module
+		public method eachModule closure {
+
+			foreach module $modules {
+
+				odfi::closures::doClosure $closure
+			}
+
+		}
+
+		## Installed Modules
+		############################
+
+
+
 
 	}
 
 	## Describe a module, just a name group and URL for now
+	###################################
 	itcl::class Module {
-		
+
 		public variable name ""
 
 		public variable url ""
@@ -36,14 +119,14 @@ namespace eval odfi::manager {
 		constructor closure {
 
 			## Remove first :: from full object name for real friendly name
-			set name [string range $this 2 end]
+			set name [lindex [split $this ::] end]
 
 			odfi::closures::doClosure $closure
 
 
 		}
 
-		## Get/Set the GIT Repository URL 
+		## Get/Set the GIT Repository URL
 		public method url {{fUrl ""}} {
 
 			if {$fUrl!=""} {
@@ -79,31 +162,35 @@ namespace eval odfi::manager {
 
 		}
 
-		## Update or Install the module 
+		## Update or Install the module
 		###################
 		public method update args {
 
-			## If not Installed -> Install 
+			## If not Installed -> Install
 			###############
 			if {![isInstalled]} {
 				odfi::common::println "Module is not installed -> trying to install"
 				odfi::common::println "Cloning from $url into $::managerHome/install/$name"
 
 				set installationPath $::managerHome/install/$name
-				
+
 				odfi::git::clone $url $installationPath
 
-				## Create Module 
+				## Create Module
 				######################
 				set installedModule [::new odfi::manager::InstalledModule ::${name}.installed $installationPath]
 
-				$installedModule setup
+				$installedModule doSetup
 
-			} 
+			} else {
 
-			## Update Module
-			######################
-			[getInstalledModule] update
+				## Update Module
+				######################
+				[getInstalledModule] doUpdate
+
+			}
+
+
 
 
 		}
@@ -112,7 +199,7 @@ namespace eval odfi::manager {
 	}
 
 
-	## Describe an installed Modules 
+	## Describe an installed Modules
 	##################
 	itcl::class InstalledModule {
 
@@ -122,9 +209,9 @@ namespace eval odfi::manager {
 		public variable path ""
 
 		## Current Branch that is checked out
-		public variable currentBranch 
+		public variable currentBranch
 
-		## Closure executed at load time 
+		## Closure executed at load time
 		public variable loadClosure ""
 
 		## Closure executed at setup time
@@ -133,7 +220,7 @@ namespace eval odfi::manager {
 
 		constructor cInstallationPath {
 
-			## Init 
+			## Init
 			###############
 			set name [file tail $cInstallationPath]
 			set path $cInstallationPath
@@ -158,7 +245,7 @@ namespace eval odfi::manager {
 
 		}
 
-		## Update 
+		## Update
 		################
 		public method update args {
 
@@ -185,7 +272,7 @@ namespace eval odfi::manager {
 			odfi::common::println "- Current version: $currentBranch"
 			odfi::git::pull $path --rebase
 
-			## Setup 
+			## Setup
 			doSetup
 
 		}
@@ -193,7 +280,7 @@ namespace eval odfi::manager {
 		## Load
 		##################
 
-		## Register load closure 
+		## Register load closure
 		public method load closure {
 			set loadClosure $closure
 		}
@@ -214,17 +301,17 @@ namespace eval odfi::manager {
 
 		}
 
-		## Setup 
+		## Setup
 		##############
 
-		## Register setup closure 
+		## Register setup closure
 		public method setup closure {
 			set setupClosure $closure
 		}
 
 		public method doSetup args {
 
-			## Call closure 
+			## Call closure
 			odfi::closures::doClosure $setupClosure
 
 		}
@@ -233,7 +320,7 @@ namespace eval odfi::manager {
 
 	itcl::class LoadResult {
 
-		publci variable environment
+		public variable environment
 
 		## Add a value to a specific environment variable
 		public method env {name value} {
