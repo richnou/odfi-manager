@@ -41,3 +41,8 @@ export PATH="$loc/bin:$PATH"
 ## Load Modules
 ###################
 #$loc/bin/odfi --load
+eval `$loc/bin/odfi --load`
+
+#echo $TCLLIBPATH
+
+#echo $SCALT

@@ -61,12 +61,18 @@ if {$info} {
 
 	## Current Version
 	##############
-	odfi::common::println "Current Version: [odfi::git::current-branch $managerHome]"
+	odfi::common::println "- Current Version: [odfi::git::current-branch $managerHome]"
 
+
+	## Parent 
+	#############
+	odfi eachParent {
+		odfi::common::println "- Parent source: $parent"
+	}
 
 	#### List
 	##########################
-	puts "Listing available modules:"
+	puts "- Available modules:"
 	odfi::common::printlnIndent
 	odfi eachModule {
 
@@ -190,12 +196,16 @@ if {$setup!=false} {
 #####################
 if {$load} {
 
-	puts "Loading ODFI"
+	#puts "#Loading ODFI"
+	odfi::manager::LoadResult loadResult
 
+	## Add The manager to bin
+	###################
+	loadResult env PATH $managerHome/bin
 
 	## Load Modules
 	##############################""
-	odfi::manager::LoadResult loadResult
+	
 
 	foreach installedModule [itcl::find objects ::*.installed] {
 
@@ -207,7 +217,12 @@ if {$load} {
 
 	## Output result to underlying command line
 	############
-	puts "Load res: [loadResult toBash]"
+	odfi::os::onOs {
+		linux* {
+			puts "[loadResult toBash]"
+		}
+	}
+	
 
 
 	exit 1
@@ -222,6 +237,42 @@ if {$clone} {
 WARNING: This will duplicate this module manager to specified location
 This feature is intended for developer who want to locally override a module installation
 "
+
+	## Prepare location
+	###########################
+	set location [pwd]/modules-manager
+	puts "Clone location: $location"
+
+	## Ask
+	puts "Do you want to continue ? (y/n)"
+	switch -glob -- [gets stdin] {
+		
+		yes -
+		y {
+
+			## Get origin 
+			set cloneURL $managerHome
+
+			## Cloning
+			puts ""
+			puts "Cloning Manager from $cloneURL"
+			odfi::git::clone $cloneURL $location
+
+			## Create config file for parent
+			set parentConfigFile [open $location/odfi.parent.config "w+"]
+			puts $parentConfigFile "
+## Config from clone operation to set source manager from $managerHome as parent
+parent central $managerHome
+"
+
+			## Boostrap
+			
+		}
+		default {
+			puts "Aborting."
+		}
+	}
+
 
 	exit 1
 

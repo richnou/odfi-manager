@@ -16,6 +16,9 @@ namespace eval odfi::manager {
 		## Folder base path of ODFI (can be file of something else)
 		public variable managerHome ""
 
+		## Available parents
+		public variable parents {}
+
 		## List of current nested groups for module configuration grouping
 		public variable groupPath {}
 
@@ -24,6 +27,9 @@ namespace eval odfi::manager {
 
 		## The installed Modules
 		public variable installedModules {}
+
+		## List with name+closure pairs that provide some closures points
+		public variable closuresPoints {}
 
 		## Build ODFI With a location
 		constructor cHomePath {
@@ -55,12 +61,63 @@ namespace eval odfi::manager {
 
 			}
 
+			## Load Closure Points 
+			##########################
+
+			#### File containing multiple closures
+			foreach closuresFile [glob -types f -nocomplain $managerHome/private/closures*.tcl] {
+
+				#puts "Found closures file: $closuresFile"
+
+				## Register
+				#lappend closuresPoints $closureName $content
+				#set closuresPoints [concat $closuresPoints [odfi::common::readFileContent $closuresFile]]
+
+				#puts "Found closures file: $closuresPoints"
+
+				applyFile $closuresFile
+
+			}
+
+			#### Single files closures 
+			foreach closureFile [glob -types f -nocomplain $managerHome/private/closure.*.tcl] {
+
+				## Closure name 
+				regexp {closure\.([\w_\.]+)\.tcl} [file tail $closureFile] -> closureName
+
+				## Content 
+				set content [odfi::common::readFileContent $closureFile]
+
+				## Register
+				lappend closuresPoints $closureName $content
+
+			}
 
 		}
 
 		public method applyFile file {
 
 			odfi::closures::doFile $file
+
+		}
+
+
+		## Hierarchical Installation 
+		##################################
+		public method parent {name location} {
+
+			## Create an ODFI for this parent 
+			set newODFI [:new ODFI odfi.${name} $location]
+			lappend parents $newODFI
+
+		}		
+
+		public method eachParent closure {
+
+			foreach parent $parents {
+
+				odfi::closures::doClosure $closure
+			}
 
 		}
 
@@ -104,6 +161,34 @@ namespace eval odfi::manager {
 		############################
 
 
+		## Closures Points 
+		#################
+
+		## Register a new closure point
+		public method closurePoint {name closure} {
+
+			lappend closuresPoints $name $closure
+
+		}
+
+		## Return the closures matching the provided name glob
+		public method getClosuresForPoint nameGlob {
+
+			set resultClosures {}
+
+			foreach {name closure} $closuresPoints {
+
+				if {[string match $nameGlob $name]} {
+
+					lappend resultClosures $closure
+				}
+				
+			}
+
+			return $resultClosures
+
+
+		}
 
 
 	}
@@ -286,13 +371,19 @@ namespace eval odfi::manager {
 		}
 
 		## Load Module by finding environment updates needed and so on
-		public method doLad loadResult {
+		public method doLoad loadResult {
 
 
 			## Load Default paths
 			############################
-			if{[file exists $path/bin]} {
-				$loadResult env PATH $path/bin
+			#if {[file exists $path/bin]} {
+			#	$loadResult env PATH $path/bin
+			#}
+
+			## Apply Load Closures 
+			#############################
+			foreach loadClosurePoint [::odfi getClosuresForPoint load*] {
+				$loadResult apply $loadClosurePoint
 			}
 
 			## Execute extra script
@@ -318,19 +409,49 @@ namespace eval odfi::manager {
 
 	}
 
+
+	## Gathers Results of Loading, and tries to apply to underlying system
+	#################################""
 	itcl::class LoadResult {
 
-		public variable environment
+		## Target Environment modification
+		public variable environment {}
+
+
+		## Apply a closure, typically from installed module configuration to this load result
+		public method apply closure {
+
+			odfi::closures::doClosure $closure
+
+		}
 
 		## Add a value to a specific environment variable
 		public method env {name value} {
 
-
+			set environment [odfi::list::arrayConcat $environment $name $value]
 
 		}
 
+
 		## Output a bash string that can be evaled by bash for env setup
 		public method toBash args {
+
+			set resStream [odfi::common::newStringChannel]
+
+			## ENV 
+			################
+			foreach {name val} $environment {
+
+				puts $resStream "export $name=\"[join $val :]:\$$name\""
+
+			}
+
+			## Get Result and return
+			flush $resStream
+			set res [read $resStream]
+			close $resStream
+
+			return $res
 
 
 		}
