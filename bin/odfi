@@ -268,7 +268,7 @@ parent central $managerHome
 			## Boostrap
 			odfi::os::onOs {
 				linux* {
-					$location/setup.linux.bash
+					exec $location/setup.linux.bash
 				}
 			}
 			
