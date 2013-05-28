@@ -60,6 +60,8 @@ Odfi Module Manager:
 
 	argument remove type string optional description "Removes a local module"
 
+	argument switch-url type list size 2 optional description "Use as --switch-url installed_module_name url_name to change repository url"
+
 	argument clone optional description "Clone"
 
 
@@ -238,6 +240,46 @@ if {$load} {
 }
 
 
+#### Switch URL
+#########################
+if {${switch-url}!=false} {
+
+	set project [lindex ${switch-url} 0]
+	set url 	[lindex ${switch-url} 1]
+
+	odfi::common::println "Requested Switch URL for $project, to url $url"
+
+	## Check Project exists
+	###########
+	set moduleDefinition [lindex [itcl::find objects "$project" -class odfi::manager::Module] 0]
+
+	if {$moduleDefinition==""} {
+
+		odfi::common::println "Module $project is not present in config file..."
+		exit 0
+	}
+
+	if {![$moduleDefinition isInstalled]} {
+
+		odfi::common::println "Module $project is not installed..."
+		exit 0
+	}
+
+	## Check URL exists
+	###############
+	if {![$moduleDefinition hasUrl $url]} {
+
+		odfi::common::println "Requested url $url is not defined..."
+		exit 0
+	}
+
+	[$moduleDefinition getInstalledModule] switch-url $url [$moduleDefinition url $url]
+
+
+	exit 1
+
+}
+
 #### Clone
 ####################
 if {$clone} {
@@ -291,6 +333,7 @@ parent central $managerHome
 	exit 1
 
 }
+
 
 
 tool usage

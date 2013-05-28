@@ -334,6 +334,18 @@ namespace eval odfi::manager {
 
 		}
 
+		## @return 0 if urlname is not defined, 1 otherwise
+		public method hasUrl name {
+
+			if {[lsearch -exact $urls $name]!=-1} {
+				return 1
+			} else {
+				return 0
+			}
+
+		}
+
+
 		## Returns the defined urls
 		public method urls args {
 			return $urls
@@ -468,6 +480,17 @@ namespace eval odfi::manager {
 		public method parameter {name value} {
 
 			set parameters [odfi::list::arrayReplace $parameters $name $value]
+
+		}
+
+		public method switch-url {name newurl} {
+
+			## Add Remote
+			odfi::git::set-remote $path $name $newurl
+
+			## FIXME Update default up
+			catch {exec git branch --set-upstream-to $name/[odfi::git::current-branch]}
+
 
 		}
 
