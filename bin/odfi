@@ -92,7 +92,10 @@ if {$info} {
 		odfi::common::printlnIndent
 
 		## Basic Infos
-		odfi::common::println "- URL: [$module url]"
+		foreach {urlName url} [$module urls] {
+			odfi::common::println "- URL $urlName ->  $url"
+		}
+
 
 		## Installation paths
 		#############
