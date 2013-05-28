@@ -569,6 +569,30 @@ namespace eval odfi::manager {
 
 		}
 
+		## Remove
+		#########################
+
+		public method remove args {
+
+			odfi::common::println "Removing $name at $path..."
+
+			## Check Status
+			if {[odfi::git::isClean $path]} {
+
+				## Delete Folder
+				file delete -force -- $path
+
+			} else {
+
+				odfi::common::println "There seems to be some local modifications in the module, maybe you should check that before removing module to avoid losing data"
+			}
+
+
+
+
+
+		}
+
 	}
 
 

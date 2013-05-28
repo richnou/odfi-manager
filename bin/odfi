@@ -58,6 +58,8 @@ Odfi Module Manager:
 
 	argument setup type string optional description "Call setup on specified module name"
 
+	argument remove type string optional description "Removes a local module"
+
 	argument clone optional description "Clone"
 
 
@@ -163,18 +165,49 @@ if {$setup!=false} {
 
 	## Check argument validity
 	###########
-	if {[llength [itcl::find objects $setup]]==0} {
+	set moduleDefinition [lindex [itcl::find objects "$setup" -class odfi::manager::Module] 0]
+
+	if {$moduleDefinition==""} {
 
 		odfi::common::println "Module $setup is not present in config file..."
 		exit 0
 	}
-	if {[llength [itcl::find objects ${setup}.installed]]==0} {
+	if {![$moduleDefinition isInstalled]} {
 
 		odfi::common::println "Module $setup is not installed..."
 		exit 0
 	}
 
-	${setup}.installed doSetup
+	[$moduleDefinition getInstalledModule] doSetup
+
+
+	exit 1
+
+}
+
+#### Remove
+####################
+if {$remove != false} {
+
+	odfi::common::println "Remove module: $remove"
+
+	## Check argument validity
+	###########
+	set moduleDefinition [lindex [itcl::find objects "$remove" -class odfi::manager::Module] 0]
+
+	if {$moduleDefinition==""} {
+
+		odfi::common::println "Module $remove is not present in config file..."
+		exit 0
+	}
+
+	if {![$moduleDefinition isInstalled]} {
+
+		odfi::common::println "Module $remove is not installed..."
+		exit 0
+	}
+
+	[$moduleDefinition getInstalledModule] remove
 
 
 	exit 1
