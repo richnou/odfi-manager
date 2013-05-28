@@ -5,9 +5,9 @@ namespace eval odfi::manager {
 
 
 
-
+	######################################################################
 	## ODFi: Describe configuration of a manager
-	#############################
+	######################################################################
 	itcl::class ODFI {
 
 		## A Custom name of this manager
@@ -32,6 +32,7 @@ namespace eval odfi::manager {
 		public variable closuresPoints {}
 
 		## Build ODFI With a location
+		#############################################
 		constructor cHomePath {
 
 			## Defaults
@@ -52,12 +53,12 @@ namespace eval odfi::manager {
 
 				## Create Installed
 				#####################
-				set name [file tail $installedModulePath]
-				set installedModule [::new odfi::manager::InstalledModule ${name}.installed $installedModulePath]
+				set installedModuleName [file tail $installedModulePath]
+				set installedModule [::new odfi::manager::InstalledModule ::${name}.${installedModuleName}.installed $installedModulePath]
 
 				lappend installedModules $installedModule
 
-				#odfi::common::println "Installed module: $name"
+				#odfi::common::println "Installed module: ::${name}.${installedModuleName}.installed"
 
 			}
 
@@ -107,7 +108,7 @@ namespace eval odfi::manager {
 		public method parent {name location} {
 
 			## Create an ODFI for this parent
-			set newODFI [:new ODFI odfi.${name} $location]
+			set newODFI [:new odfi::manager::ODFI ::odfi.${name} $location]
 			lappend parents $newODFI
 
 		}
@@ -193,18 +194,23 @@ namespace eval odfi::manager {
 
 	}
 
+	######################################################################
 	## Describe a module, just a name group and URL for now
-	###################################
+	######################################################################
 	itcl::class Module {
 
+		## Name of module
 		public variable name ""
 
-		public variable url ""
+		## name value pairs of available urls for module
+		public variable urls {}
 
 		constructor closure {
 
 			## Remove first :: from full object name for real friendly name
 			set name [lindex [split $this .] end]
+
+			#puts "Created module object name: $this"
 
 			odfi::closures::doClosure $closure
 
@@ -212,14 +218,19 @@ namespace eval odfi::manager {
 		}
 
 		## Get/Set the GIT Repository URL
-		public method url {{fUrl ""}} {
+		public method url {name {fUrl ""}} {
 
 			if {$fUrl!=""} {
-				set url $fUrl
+				set urls [odfi::list::arrayReplace $urls $name $fUrl]
 			}
 
-			return $url
+			return [odfi::list::arrayGet $urls $name]
 
+		}
+
+		## Returns the defined urls
+		public method urls args {
+			return $urls
 		}
 
 		## Get Module name
@@ -232,7 +243,7 @@ namespace eval odfi::manager {
 		## @return true if an installed module object has been detected
 		public method isInstalled args {
 
-			if {[llength [itcl::find objects ::${name}.installed]]>0} {
+			if {[llength [itcl::find objects ${this}.installed]]>0} {
 				return 1
 			} else {
 				return 0
@@ -243,7 +254,7 @@ namespace eval odfi::manager {
 		## @return The first instanciated InstalledModule object with same name is this one, but with .installed appended
 		public method getInstalledModule args {
 
-			return [lindex [itcl::find objects ::${name}.installed] 0]
+			return [lindex [itcl::find objects ${this}.installed] 0]
 
 		}
 
@@ -255,11 +266,18 @@ namespace eval odfi::manager {
 			###############
 			if {![isInstalled]} {
 				odfi::common::println "Module is not installed -> trying to install"
-				odfi::common::println "Cloning from $url into $::managerHome/install/$name"
+
+				## Choose URL ?
+				if {[catch {set choosenURL [url default]}]} {
+					odfi::common::println "No default URL Provided, check config -> Aborting...."
+					return
+				}
+
+				odfi::common::println "Cloning from $choosenURL into $::managerHome/install/$name"
 
 				set installationPath $::managerHome/install/$name
 
-				odfi::git::clone $url $installationPath
+				odfi::git::clone $choosenURL $installationPath
 
 				## Create Module
 				######################
@@ -302,6 +320,8 @@ namespace eval odfi::manager {
 		## Closure executed at setup time
 		public variable setupClosure ""
 
+		## Parameters: name value pairs in list that are resetup before closures evalutation
+		public variable parameters {}
 
 		constructor cInstallationPath {
 
@@ -324,9 +344,17 @@ namespace eval odfi::manager {
 
 		}
 
+		## Show installed module informations
 		public method printInfos args {
 
 			odfi::common::println "- Installation Path: $path"
+
+		}
+
+		## Record a new Parameter
+		public method parameter {name value} {
+
+			set parameters [odfi::list::arrayReplace $parameters $name $value]
 
 		}
 
@@ -374,20 +402,22 @@ namespace eval odfi::manager {
 		public method doLoad loadResult {
 
 
-			## Load Default paths
-			############################
-			#if {[file exists $path/bin]} {
-			#	$loadResult env PATH $path/bin
-			#}
-
 			## Apply Load Closures
 			#############################
 			foreach loadClosurePoint [::odfi getClosuresForPoint load*] {
 				$loadResult apply $loadClosurePoint
 			}
 
+
+
 			## Execute extra script
 			###############################
+
+			#### Prepare parameters
+			foreach {pName pValue} $parameters {
+				set $pName $pValue
+			}
+
 			$loadResult apply $loadClosure
 
 		}
@@ -401,6 +431,22 @@ namespace eval odfi::manager {
 		}
 
 		public method doSetup args {
+
+			## Apply Setup Closures
+			#############################
+			foreach setupClosurePoint [::odfi getClosuresForPoint setup*] {
+				odfi::closures::doClosure $setupClosurePoint
+			}
+
+
+
+			## Execute extra script
+			###############################
+
+			#### Prepare parameters
+			foreach {pName pValue} $parameters {
+				set $pName $pValue
+			}
 
 			## Call closure
 			odfi::closures::doClosure $setupClosure
