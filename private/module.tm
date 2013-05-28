@@ -108,7 +108,7 @@ namespace eval odfi::manager {
 		public method parent {name location} {
 
 			## Create an ODFI for this parent
-			set newODFI [:new odfi::manager::ODFI ::odfi.${name} $location]
+			set newODFI [::new odfi::manager::ODFI ::odfi.${name} $location]
 			lappend parents $newODFI
 
 		}
