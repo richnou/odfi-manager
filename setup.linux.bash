@@ -25,9 +25,22 @@ export PATH="$loc/bin:$PATH"
 
 ## Load Modules
 ###################
-#$loc/bin/odfi --load
-eval `$loc/bin/odfi --load`
+$loc/bin/odfi --load
+
+loadRes=`$loc/bin/odfi --load`
+
+while read -r line; do
+
+    #echo "Showing line2: $line"
+
+    eval $line
+
+done <<< "$loadRes"
+
+#eval `$loc/bin/odfi --load`
 
 #echo $TCLLIBPATH
 
-#echo $SCALT
+echo $SCALT
+
+echo $PATH

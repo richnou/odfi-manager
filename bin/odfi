@@ -10,9 +10,9 @@ set managerHome [file normalize [file dirname [info script]]/../]
 if {![file exists $managerHome/private/odfi-dev-tcl/]} {
 
 	puts "
-Private Dependency ODFI dev tcl is missing.
-Trying to clone using command line call -> This is the only way to solve that for now.
-It this failes, simply install the master version there: $managerHome/private/odfi-dev-tcl
+# Private Dependency ODFI dev tcl is missing.
+# Trying to clone using command line call -> This is the only way to solve that for now.
+# It this failes, simply install the master version there: $managerHome/private/odfi-dev-tcl
 "
     catch {puts [exec git clone http://lebleu/gitlab/odfi/odfi-dev-tcl.git  $managerHome/private/odfi-dev-tcl]}
 
@@ -207,7 +207,7 @@ if {$setup!=false} {
 #####################
 if {$load} {
 
-	#puts "#Loading ODFI"
+	puts "#Loading ODFI"
 	odfi::manager::LoadResult loadResult
 
 	## Add The manager to bin

@@ -61,7 +61,7 @@ namespace eval odfi::manager {
 
 			}
 
-			## Load Closure Points 
+			## Load Closure Points
 			##########################
 
 			#### File containing multiple closures
@@ -79,13 +79,13 @@ namespace eval odfi::manager {
 
 			}
 
-			#### Single files closures 
+			#### Single files closures
 			foreach closureFile [glob -types f -nocomplain $managerHome/private/closure.*.tcl] {
 
-				## Closure name 
+				## Closure name
 				regexp {closure\.([\w_\.]+)\.tcl} [file tail $closureFile] -> closureName
 
-				## Content 
+				## Content
 				set content [odfi::common::readFileContent $closureFile]
 
 				## Register
@@ -102,15 +102,15 @@ namespace eval odfi::manager {
 		}
 
 
-		## Hierarchical Installation 
+		## Hierarchical Installation
 		##################################
 		public method parent {name location} {
 
-			## Create an ODFI for this parent 
+			## Create an ODFI for this parent
 			set newODFI [:new ODFI odfi.${name} $location]
 			lappend parents $newODFI
 
-		}		
+		}
 
 		public method eachParent closure {
 
@@ -134,12 +134,12 @@ namespace eval odfi::manager {
 			set groupPath [lreplace $groupPath end end]
 		}
 
-		public method module {name closure} {
+		public method module {moduleName closure} {
 
 
 			## Create Module
 			#######
-			set module [::new odfi::manager::Module [join [concat $groupPath $name] -] $closure]
+			set module [::new odfi::manager::Module ::${name}.[join [concat $groupPath $moduleName] -] $closure]
 
 			lappend modules $module
 
@@ -161,7 +161,7 @@ namespace eval odfi::manager {
 		############################
 
 
-		## Closures Points 
+		## Closures Points
 		#################
 
 		## Register a new closure point
@@ -182,7 +182,7 @@ namespace eval odfi::manager {
 
 					lappend resultClosures $closure
 				}
-				
+
 			}
 
 			return $resultClosures
@@ -204,7 +204,7 @@ namespace eval odfi::manager {
 		constructor closure {
 
 			## Remove first :: from full object name for real friendly name
-			set name [lindex [split $this ::] end]
+			set name [lindex [split $this .] end]
 
 			odfi::closures::doClosure $closure
 
@@ -380,7 +380,7 @@ namespace eval odfi::manager {
 			#	$loadResult env PATH $path/bin
 			#}
 
-			## Apply Load Closures 
+			## Apply Load Closures
 			#############################
 			foreach loadClosurePoint [::odfi getClosuresForPoint load*] {
 				$loadResult apply $loadClosurePoint
@@ -438,7 +438,7 @@ namespace eval odfi::manager {
 
 			set resStream [odfi::common::newStringChannel]
 
-			## ENV 
+			## ENV
 			################
 			foreach {name val} $environment {
 
