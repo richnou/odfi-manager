@@ -101,6 +101,9 @@ if {$info} {
 #####################
 if {$update} {
 
+	## Update private dependencies
+	odfi::git::pull $managerHome/private/odfi-dev-tcl --rebase
+
 	odfi::common::println "Updating modules"
 	odfi::common::printlnIndent
 	foreach installedModule [itcl::find objects -class odfi::manager::InstalledModule] {

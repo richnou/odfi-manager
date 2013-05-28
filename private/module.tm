@@ -225,9 +225,9 @@ namespace eval odfi::manager {
 
 			set resultClosures {}
 
-			foreach {name closure} $closuresPoints {
+			foreach {closureName closure} $closuresPoints {
 
-				if {[string match $nameGlob $name]} {
+				if {[string match $nameGlob $closureName]} {
 
 					lappend resultClosures $closure
 				}
@@ -313,13 +313,13 @@ namespace eval odfi::manager {
 	itcl::class Module {
 
 		## Simple Name of module
-		public variable name ""
+		private variable name ""
 
 		## Full Name ist the object name, including ODFI install provenance
-		public variable fullName ""
+		private variable fullName ""
 
 		## name value pairs of available urls for module
-		public variable urls {}
+		private variable urls {}
 
 		constructor closure {
 
@@ -337,24 +337,24 @@ namespace eval odfi::manager {
 
 		## Get/Set the GIT Repository URL
 		#  @closurePoint module.url.add $name $url
-		public method url {name {url ""}} {
+		public method url {urlName {url ""}} {
 
 			if {$url!=""} {
 
 				## Call Closure point
 				::odfi.local callClosurePoint module.url.add*
 
-				set urls [odfi::list::arrayReplace $urls $name $url]
+				set urls [odfi::list::arrayReplace $urls $urlName $url]
 			}
 
-			return [odfi::list::arrayGet $urls $name]
+			return [odfi::list::arrayGet $urls $urlName]
 
 		}
 
 		## @return 0 if urlname is not defined, 1 otherwise
-		public method hasUrl name {
+		public method hasUrl urlName {
 
-			if {[lsearch -exact $urls $name]!=-1} {
+			if {[lsearch -exact $urls $urlName]!=-1} {
 				return 1
 			} else {
 				return 0
@@ -418,7 +418,7 @@ namespace eval odfi::manager {
 
 				set installationPath $::managerHome/install/$name
 
-				odfi::common::println "Cloning from $choosenURL into $installationPath"
+				odfi::common::println "2 Cloning from $choosenURL into $installationPath"
 				odfi::git::clone $choosenURL $installationPath
 
 				## Create Module
