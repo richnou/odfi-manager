@@ -30,7 +30,7 @@ source $managerHome/private/module.tm
 
 ## Load ODFI configuration (config and installed modules)
 ####################
-::new odfi::manager::ODFI odfi $managerHome
+::new odfi::manager::ODFI odfi.local $managerHome
 
 
 
@@ -70,52 +70,22 @@ tool parseArguments
 ##########################
 if {$info} {
 
-	## Current Version
-	##############
-	odfi::common::println "- Current Version: [odfi::git::current-branch $managerHome]"
+	## Print General Infos
+	###########################
+	odfi.local printInfos
 
 
-	## Parent
-	#############
-	odfi eachParent {
-		odfi::common::println "- Parent source: $parent"
-	}
+	## Show Resolved list
+	##############################
+	odfi::common::println "- Resolved installed modules list for load:"
 
-	#### List
-	##########################
-	puts "- Available modules:"
 	odfi::common::printlnIndent
-	odfi eachModule {
-
-		odfi::common::println "Module : [$module name]"
-
-		odfi::common::printlnIndent
-
-		## Basic Infos
-		foreach {urlName url} [$module urls] {
-			odfi::common::println "- URL $urlName ->  $url"
-		}
+	foreach installedModule [odfi.local resolveInstalledModules] {
 
 
-		## Installation paths
-		#############
-		if {[$module isInstalled]} {
-			odfi::common::println "- Installed: yes"
-
-			set installedModule [$module getInstalledModule]
-			$installedModule printInfos
-
-
-
-		} else {
-			odfi::common::println "- Installed: no"
-		}
-
-		odfi::common::printlnOutdent
-
+		odfi::common::println "- $installedModule"
 
 	}
-
 	odfi::common::printlnOutdent
 
 	exit 1
@@ -163,16 +133,21 @@ if {$install!=false} {
 
 	## Check argument validity
 	###########
-	if {[llength [itcl::find objects $install]]==0} {
+
+	set moduleDefinition [lindex [itcl::find objects "$install" -class odfi::manager::Module] 0]
+
+	if {$moduleDefinition==""} {
 
 		odfi::common::println "Module $install is not present in config file..."
 		exit 0
 	}
 
 
+
+
 	## Update/Install
 	#####################
-	$install update
+	$moduleDefinition update
 
 
 	exit 1
@@ -221,7 +196,7 @@ if {$load} {
 	##############################""
 
 
-	foreach installedModule [itcl::find objects ::*.installed] {
+	foreach installedModule [odfi.local resolveInstalledModules] {
 
 		## Call Load on module
 		################

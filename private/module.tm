@@ -39,6 +39,7 @@ namespace eval odfi::manager {
 			###############
 			set managerHome $cHomePath
 			#set name 		[string range $this 2 end]
+			set name 		[lindex [split $this .] end]
 
 			## Apply Config files
 			#############
@@ -96,6 +97,11 @@ namespace eval odfi::manager {
 
 		}
 
+		## Return name
+		public method name args {
+			return $name
+		}
+
 		public method applyFile file {
 
 			odfi::closures::doFile $file
@@ -119,6 +125,44 @@ namespace eval odfi::manager {
 
 				odfi::closures::doClosure $closure
 			}
+
+		}
+
+		## @return A list of the installed modules that will be used for loading. The local installed modules override the parent ones
+		public method resolveInstalledModules args {
+
+			## Get From Parents
+			set resultList {}
+			foreach parent [concat $parents $this] {
+
+				## Get Modules
+				set installedModules [itcl::find objects "*[$parent name].*.installed"]
+
+				#puts "Found installed modules in [$parent name]: [llength $installedModules] "
+
+				foreach installedModule $installedModules {
+
+					## Check module has not already be set
+					#######
+
+					## Search in existing for a module with same shortName.installed
+					set existing [lsearch -glob $resultList "*[$installedModule name].installed"]
+
+					## If one exists, replace
+					if {$existing!=-1} {
+						set resultList [lreplace $resultList $existing $existing $installedModule]
+					} else {
+
+						## Just add
+						lappend resultList $installedModule
+
+					}
+
+				}
+
+			}
+
+			return $resultList
 
 		}
 
@@ -191,6 +235,63 @@ namespace eval odfi::manager {
 
 		}
 
+		## Various
+		######################
+		public method printInfos args {
+
+			## Current Version
+			##############
+			odfi::common::println "- Current Version: [odfi::git::current-branch $managerHome]"
+
+
+			## Parent
+			#############
+			$this eachParent {
+				odfi::common::println "- Parent source: $parent"
+				odfi::common::printlnIndent
+				$parent printInfos
+				odfi::common::printlnOutdent
+			}
+
+			#### List
+			##########################
+			odfi::common::println "- Available modules:"
+			odfi::common::printlnIndent
+			$this eachModule {
+
+				odfi::common::println "Module : [$module fullName]"
+
+				odfi::common::printlnIndent
+
+				## Basic Infos
+				foreach {urlName url} [$module urls] {
+					odfi::common::println "- URL $urlName ->  $url"
+				}
+
+
+				## Installation paths
+				#############
+				if {[$module isInstalled]} {
+					odfi::common::println "- Installed: yes"
+
+					set installedModule [$module getInstalledModule]
+					$installedModule printInfos
+
+
+
+				} else {
+					odfi::common::println "- Installed: no"
+				}
+
+				odfi::common::printlnOutdent
+
+
+			}
+
+			odfi::common::printlnOutdent
+
+		}
+
 
 	}
 
@@ -199,8 +300,11 @@ namespace eval odfi::manager {
 	######################################################################
 	itcl::class Module {
 
-		## Name of module
+		## Simple Name of module
 		public variable name ""
+
+		## Full Name ist the object name, including ODFI install provenance
+		public variable fullName ""
 
 		## name value pairs of available urls for module
 		public variable urls {}
@@ -208,7 +312,9 @@ namespace eval odfi::manager {
 		constructor closure {
 
 			## Remove first :: from full object name for real friendly name
-			set name [lindex [split $this .] end]
+			set fullName   [string range $this 2 end]
+			set name 	   [lindex [split $this .] end]
+
 
 			#puts "Created module object name: $this"
 
@@ -237,6 +343,13 @@ namespace eval odfi::manager {
 		public method name args {
 
 			return $name
+
+		}
+
+		## Get Full Object name
+		public method fullName args {
+
+			return $fullName
 
 		}
 
@@ -273,15 +386,15 @@ namespace eval odfi::manager {
 					return
 				}
 
-				odfi::common::println "Cloning from $choosenURL into $::managerHome/install/$name"
 
 				set installationPath $::managerHome/install/$name
 
+				odfi::common::println "Cloning from $choosenURL into $installationPath"
 				odfi::git::clone $choosenURL $installationPath
 
 				## Create Module
 				######################
-				set installedModule [::new odfi::manager::InstalledModule ::${name}.installed $installationPath]
+				set installedModule [::new odfi::manager::InstalledModule ::${fullName}.installed $installationPath]
 
 				$installedModule doSetup
 
@@ -360,10 +473,13 @@ namespace eval odfi::manager {
 
 		## Update
 		################
-		public method update args {
+		public method doUpdate args {
+
+
 
 			## List Versions (branches) from all remotes
 			######################
+			odfi::common::println "- Module is here: $path"
 			odfi::common::println "- Available Versions:"
 			odfi::common::printlnIndent
 			foreach {remote branches} [odfi::git::list-remote-branches $path] {
@@ -404,7 +520,7 @@ namespace eval odfi::manager {
 
 			## Apply Load Closures
 			#############################
-			foreach loadClosurePoint [::odfi getClosuresForPoint load*] {
+			foreach loadClosurePoint [::odfi.local getClosuresForPoint load*] {
 				$loadResult apply $loadClosurePoint
 			}
 
@@ -434,7 +550,7 @@ namespace eval odfi::manager {
 
 			## Apply Setup Closures
 			#############################
-			foreach setupClosurePoint [::odfi getClosuresForPoint setup*] {
+			foreach setupClosurePoint [::odfi.local getClosuresForPoint setup*] {
 				odfi::closures::doClosure $setupClosurePoint
 			}
 
