@@ -41,30 +41,8 @@ namespace eval odfi::manager {
 			#set name 		[string range $this 2 end]
 			set name 		[lindex [split $this .] end]
 
-			## Apply Config files
-			#############
-			foreach configFile [glob -types f -nocomplain $managerHome/odfi*.config] {
-				applyFile $configFile
-			}
-
-			## Installed modules
-			####################
-			set allModules [glob -types d -nocomplain $managerHome/install/*]
-			foreach installedModulePath $allModules {
-
-				## Create Installed
-				#####################
-				set installedModuleName [file tail $installedModulePath]
-				set installedModule [::new odfi::manager::InstalledModule ::${name}.${installedModuleName}.installed $installedModulePath]
-
-				lappend installedModules $installedModule
-
-				#odfi::common::println "Installed module: ::${name}.${installedModuleName}.installed"
-
-			}
-
 			## Load Closure Points
-			##########################
+			####################################################
 
 			#### File containing multiple closures
 			foreach closuresFile [glob -types f -nocomplain $managerHome/private/closures*.tcl] {
@@ -94,6 +72,32 @@ namespace eval odfi::manager {
 				lappend closuresPoints $closureName $content
 
 			}
+
+			####################################################
+
+			## Apply Config files
+			#############
+			foreach configFile [glob -types f -nocomplain $managerHome/odfi*.config] {
+				applyFile $configFile
+			}
+
+			## Installed modules
+			####################
+			set allModules [glob -types d -nocomplain $managerHome/install/*]
+			foreach installedModulePath $allModules {
+
+				## Create Installed
+				#####################
+				set installedModuleName [file tail $installedModulePath]
+				set installedModule [::new odfi::manager::InstalledModule ::${name}.${installedModuleName}.installed $installedModulePath]
+
+				lappend installedModules $installedModule
+
+				#odfi::common::println "Installed module: ::${name}.${installedModuleName}.installed"
+
+			}
+
+
 
 		}
 
@@ -235,6 +239,14 @@ namespace eval odfi::manager {
 
 		}
 
+		## Call all the closures point for the given name
+		public method callClosurePoint nameGlob {
+
+			foreach closure [getClosuresForPoint $nameGlob] {
+				odfi::closures::doClosure $closure
+			}
+		}
+
 		## Various
 		######################
 		public method printInfos args {
@@ -324,10 +336,15 @@ namespace eval odfi::manager {
 		}
 
 		## Get/Set the GIT Repository URL
-		public method url {name {fUrl ""}} {
+		#  @closurePoint module.url.add $name $url
+		public method url {name {url ""}} {
 
-			if {$fUrl!=""} {
-				set urls [odfi::list::arrayReplace $urls $name $fUrl]
+			if {$url!=""} {
+
+				## Call Closure point
+				::odfi.local callClosurePoint module.url.add*
+
+				set urls [odfi::list::arrayReplace $urls $name $url]
 			}
 
 			return [odfi::list::arrayGet $urls $name]
