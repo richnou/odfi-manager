@@ -7,6 +7,17 @@
 set managerHome [file normalize [file dirname [info script]]/../]
 
 #### ODFI Dev TCL
+if {![file exists $managerHome/private/odfi-dev-tcl/]} {
+
+	puts "
+Private Dependency ODFI dev tcl is missing.
+Trying to clone using command line call -> This is the only way to solve that for now.
+It this failes, simply install the master version there: $managerHome/private/odfi-dev-tcl
+"
+    catch {puts [exec git clone http://lebleu/gitlab/odfi/odfi-dev-tcl.git  $managerHome/private/odfi-dev-tcl]}
+
+}
+
 source $managerHome/private/odfi-dev-tcl/tcl/common.tm
 source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
 source $managerHome/private/odfi-dev-tcl/tcl/closures-2.0.0.tm
@@ -64,7 +75,7 @@ if {$info} {
 	odfi::common::println "- Current Version: [odfi::git::current-branch $managerHome]"
 
 
-	## Parent 
+	## Parent
 	#############
 	odfi eachParent {
 		odfi::common::println "- Parent source: $parent"
@@ -205,7 +216,7 @@ if {$load} {
 
 	## Load Modules
 	##############################""
-	
+
 
 	foreach installedModule [itcl::find objects ::*.installed] {
 
@@ -222,7 +233,7 @@ if {$load} {
 			puts "[loadResult toBash]"
 		}
 	}
-	
+
 
 
 	exit 1
@@ -246,11 +257,11 @@ This feature is intended for developer who want to locally override a module ins
 	## Ask
 	puts "Do you want to continue ? (y/n)"
 	switch -glob -- [gets stdin] {
-		
+
 		yes -
 		y {
 
-			## Get origin 
+			## Get origin
 			set cloneURL $managerHome
 
 			## Cloning
@@ -268,10 +279,10 @@ parent central $managerHome
 			## Boostrap
 			odfi::os::onOs {
 				linux* {
-					exec $location/setup.linux.bash
+					exec bash $location/setup.linux.bash
 				}
 			}
-			
+
 		}
 		default {
 			puts "Aborting."

@@ -17,21 +17,6 @@ then
 	exit
 fi
 
-## Private dependencies
-##############################
-
-## DEV TCL
-if [[ ! -d $loc/private/odfi-dev-tcl ]]
-then
-
-    url="http://lebleu/gitlab/odfi/odfi-dev-tcl.git"
-
-    echo "Modules Managers needs dev TCL module privately."
-    echo "Trying to clone from $url"
-
-    git clone $url $loc/private/odfi-dev-tcl
-fi
-
 
 
 ## Export Ourselves to PATH
