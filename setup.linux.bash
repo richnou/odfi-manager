@@ -4,7 +4,7 @@
 ### Use this script to prepare the local system for manager
 loc="$(dirname "$(readlink -f ${BASH_SOURCE[0]})")"
 
-echo "ODFI Module Manager is at: $loc"
+#echo "ODFI Module Manager is at: $loc"
 
 ## System Dependencies
 ###############
@@ -25,7 +25,7 @@ export PATH="$loc/bin:$PATH"
 
 ## Load Modules
 ###################
-$loc/bin/odfi --load
+#$loc/bin/odfi --load
 
 loadRes=`$loc/bin/odfi --load`
 
@@ -41,6 +41,6 @@ done <<< "$loadRes"
 
 #echo $TCLLIBPATH
 
-echo $SCALT
+#echo $SCALT
 
-echo $PATH
+#echo $PATH

@@ -499,10 +499,22 @@ namespace eval odfi::manager {
 			## Update current
 			#######################
 			odfi::common::println "- Current version: $currentBranch"
-			odfi::git::pull $path --rebase
 
-			## Setup
-			doSetup
+			## Check Clean state
+			if {[odfi::git::isClean $path]} {
+
+				odfi::git::pull $path --rebase
+
+				## Setup
+				doSetup
+
+			} else {
+				odfi::common::println "The module installation is not clean, you have changes you should check before updating!"
+			}
+
+
+
+
 
 		}
 
@@ -595,9 +607,9 @@ namespace eval odfi::manager {
 
 	}
 
-
+	######################################################################################
 	## Gathers Results of Loading, and tries to apply to underlying system
-	#################################""
+	######################################################################################
 	itcl::class LoadResult {
 
 		## Target Environment modification
@@ -612,9 +624,17 @@ namespace eval odfi::manager {
 		}
 
 		## Add a value to a specific environment variable
-		public method env {name value} {
+		public method env {name value args} {
 
-			set environment [odfi::list::arrayConcat $environment $name $value]
+			## Separator specified ?
+			set nameWithSep $name
+			if {[odfi::list::arrayContains $args -separator]} {
+
+				set sep [odfi::list::arrayGet $args -separator]
+				set nameWithSep [list $name $sep]
+			}
+
+			set environment [odfi::list::arrayConcat $environment $nameWithSep $value]
 
 		}
 
@@ -628,7 +648,14 @@ namespace eval odfi::manager {
 			################
 			foreach {name val} $environment {
 
-				puts $resStream "export $name=\"[join $val :]:\$$name\""
+				## name can be a list with separator specified
+				set sep :
+				if {[llength $name]>1} {
+					set sep [lindex $name 1]
+					set name [lindex $name 0]
+				}
+
+				puts $resStream "export $name=\"[join $val $sep]$sep\$$name\""
 
 			}
 

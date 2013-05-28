@@ -104,23 +104,10 @@ if {$update} {
 	foreach installedModule [itcl::find objects -class odfi::manager::InstalledModule] {
 
 		odfi::common::println "- [$installedModule name]"
-		$installedModule update
+		$installedModule doUpdate
 
 	}
 	odfi::common::printlnOutdent
-
-	## Check argument validity
-	###########
-	if {[llength [itcl::find objects $install]]==0} {
-
-		odfi::common::println "Module $install is not present in config file..."
-		exit 0
-	}
-
-
-	## Update/Install
-	#####################
-	$install update
 
 
 	exit 1

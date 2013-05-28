@@ -5,7 +5,7 @@
 
 closurePoint load {
 
-	## bin -> PATH 
+	## bin -> PATH
 	#####################
 	if {[file exists $path/bin]} {
 		$loadResult env PATH $path/bin
@@ -19,9 +19,9 @@ closurePoint load {
 	} {
 
 		if {[file exists $path/$tclLibPath]} {
-			$loadResult env TCLLIBPATH $path/$tclLibPath
+			$loadResult env TCLLIBPATH $path/$tclLibPath -separator " "
 		}
-		
+
 
 	}
 
