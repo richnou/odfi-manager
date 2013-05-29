@@ -18,6 +18,7 @@ if {![file exists $managerHome/private/odfi-dev-tcl/]} {
 
 }
 
+
 if {[catch {
 	source $managerHome/private/odfi-dev-tcl/tcl/common.tm
 	source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
@@ -25,7 +26,7 @@ if {[catch {
 	source $managerHome/private/odfi-dev-tcl/tcl/list-2.0.0.tm
 	source $managerHome/private/odfi-dev-tcl/tcl/tool-1.0.0.tm
 	source $managerHome/private/odfi-dev-tcl/tcl/os-1.0.0.tm
-}]} {
+} res]} {
 
 	## An error occured here, exit
 	#######
@@ -33,7 +34,6 @@ if {[catch {
 
 	## Output a message, or none if we are on a known incompatible host
 	puts "# Current host $host is not compatible with odfi, probably missing TCL packages like ITCL"
-
 	exit 0
 }
 
@@ -116,6 +116,9 @@ if {$update} {
 
 	## Update private dependencies
 	odfi::git::pull $managerHome/private/odfi-dev-tcl --rebase
+
+	## Update Ourselves
+	odfi::git::pull $managerHome --rebase
 
 	odfi::common::println "Updating modules"
 	odfi::common::printlnIndent
