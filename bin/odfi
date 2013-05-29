@@ -105,7 +105,7 @@ if {$info} {
 	}
 	odfi::common::printlnOutdent
 
-	exit 1
+	exit 0
 }
 
 
@@ -122,7 +122,10 @@ if {$update} {
 
 	odfi::common::println "Updating modules"
 	odfi::common::printlnIndent
-	foreach installedModule [itcl::find objects -class odfi::manager::InstalledModule] {
+
+	## Not Updating non local modules 
+	#############
+	foreach installedModule [itcl::find objects *local.installed* -class odfi::manager::InstalledModule] {
 
 		odfi::common::println "- [$installedModule name]"
 		$installedModule doUpdate
@@ -131,7 +134,7 @@ if {$update} {
 	odfi::common::printlnOutdent
 
 
-	exit 1
+	exit 0
 
 }
 
@@ -160,7 +163,7 @@ if {$install!=false} {
 	$moduleDefinition update
 
 
-	exit 1
+	exit 0
 
 }
 
@@ -189,7 +192,7 @@ if {$setup!=false} {
 	[$moduleDefinition getInstalledModule] doSetup
 
 
-	exit 1
+	exit 0
 
 }
 
@@ -218,7 +221,7 @@ if {$remove != false} {
 	[$moduleDefinition getInstalledModule] remove
 
 
-	exit 1
+	exit 0
 
 }
 
@@ -253,9 +256,7 @@ if {$load} {
 		}
 	}
 
-
-
-	exit 1
+	exit 0
 }
 
 
@@ -295,7 +296,7 @@ if {${switch-url}!=false} {
 	[$moduleDefinition getInstalledModule] switch-url $url [$moduleDefinition url $url]
 
 
-	exit 1
+	exit 0
 
 }
 
@@ -335,6 +336,8 @@ This feature is intended for developer who want to locally override a module ins
 ## Config from clone operation to set source manager from $managerHome as parent
 parent central $managerHome
 "
+			## Clone private dependencies from this manager to the cloned one to keep everyting in sync
+			odfi::git::clone $managerHome/private/odfi-dev-tcl $location/private/odfi-dev-tcl
 
 			## Boostrap
 			odfi::os::onOs {
@@ -351,7 +354,7 @@ parent central $managerHome
 	}
 
 
-	exit 1
+	exit 0
 
 }
 

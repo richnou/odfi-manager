@@ -473,9 +473,13 @@ namespace eval odfi::manager {
 			set path $cInstallationPath
 
 			## FIXME
-			set currentBranch "FIXME"
-			#set currentBranch [odfi::git::current-branch $path]
-
+			if {[string match *local.* $this]} {
+				set currentBranch [odfi::git::current-branch $path]
+			} else {
+				set currentBranch "FIXME, Not local install"
+			}
+			
+			#
 			## Execute $path/module.odfi as closure if present
 			###############
 			odfi::closures::doFile $path/module.odfi
@@ -517,6 +521,7 @@ namespace eval odfi::manager {
 		################
 		public method doUpdate args {
 
+			
 
 
 			## List Versions (branches) from all remotes
