@@ -550,7 +550,7 @@ namespace eval odfi::manager {
 			## Check Clean state
 			if {[odfi::git::isClean $path]} {
 
-				odfi::git::pull $path --rebase
+				odfi::git::pull $path --rebase --quiet
 
 				## Setup
 				doSetup
