@@ -326,7 +326,7 @@ This feature is intended for developer who want to locally override a module ins
 			## Cloning
 			puts ""
 			puts "Cloning Manager from $cloneURL"
-			
+
 			odfi::git::clone $cloneURL $location
 
 			## Create config file for parent
@@ -339,7 +339,8 @@ parent central $managerHome
 			## Boostrap
 			odfi::os::onOs {
 				linux* {
-					exec bash $location/setup.linux.bash
+					puts "Calling setup once on the cloned manager to ensure correct setup"
+					puts [exec bash $location/setup.linux.bash]
 				}
 			}
 
