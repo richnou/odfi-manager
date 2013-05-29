@@ -472,7 +472,9 @@ namespace eval odfi::manager {
 			set name [file tail $cInstallationPath]
 			set path $cInstallationPath
 
-			set currentBranch [odfi::git::current-branch $path]
+			## FIXME
+			set currentBranch "FIXME"
+			#set currentBranch [odfi::git::current-branch $path]
 
 			## Execute $path/module.odfi as closure if present
 			###############
