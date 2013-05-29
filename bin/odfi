@@ -326,6 +326,7 @@ This feature is intended for developer who want to locally override a module ins
 			## Cloning
 			puts ""
 			puts "Cloning Manager from $cloneURL"
+			
 			odfi::git::clone $cloneURL $location
 
 			## Create config file for parent

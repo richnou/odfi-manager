@@ -18,6 +18,17 @@ then
 fi
 
 
+## Hooks
+###############
+if [[ ! -f $loc/.git/hooks/post-commit ]]
+then
+	cp -p $loc/hooks/post-commit $loc/.git/hooks/post-commit
+fi
+
+if [[ ! -f $loc/.git/hooks/post-merge ]]
+then
+	cp -p $loc/hooks/post-merge $loc/.git/hooks/post-merge
+fi
 
 ## Export Ourselves to PATH
 #################

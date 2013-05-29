@@ -1,0 +1,5 @@
+#!/bin/bash
+
+chmod -Rf o+rx .git/
+
+exit 0
