@@ -12,18 +12,31 @@ if {![file exists $managerHome/private/odfi-dev-tcl/]} {
 	puts "
 # Private Dependency ODFI dev tcl is missing.
 # Trying to clone using command line call -> This is the only way to solve that for now.
-# It this failes, simply install the master version there: $managerHome/private/odfi-dev-tcl
+# It this fails, simply install the master version there: $managerHome/private/odfi-dev-tcl
 "
     catch {puts [exec git clone http://lebleu/gitlab/odfi/odfi-dev-tcl.git  $managerHome/private/odfi-dev-tcl]}
 
 }
 
-source $managerHome/private/odfi-dev-tcl/tcl/common.tm
-source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
-source $managerHome/private/odfi-dev-tcl/tcl/closures-2.0.0.tm
-source $managerHome/private/odfi-dev-tcl/tcl/list-2.0.0.tm
-source $managerHome/private/odfi-dev-tcl/tcl/tool-1.0.0.tm
-source $managerHome/private/odfi-dev-tcl/tcl/os-1.0.0.tm
+if {[catch {
+	source $managerHome/private/odfi-dev-tcl/tcl/common.tm
+	source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
+	source $managerHome/private/odfi-dev-tcl/tcl/closures-2.0.0.tm
+	source $managerHome/private/odfi-dev-tcl/tcl/list-2.0.0.tm
+	source $managerHome/private/odfi-dev-tcl/tcl/tool-1.0.0.tm
+	source $managerHome/private/odfi-dev-tcl/tcl/os-1.0.0.tm
+}]} {
+
+	## An error occured here, exit
+	#######
+	set host [info hostname]
+
+	## Output a message, or none if we are on a known incompatible host
+	puts "# Current host $host is not compatible with odfi, probably missing TCL packages like ITCL"
+
+	exit 0
+}
+
 
 ## Local definitions
 source $managerHome/private/module.tm
