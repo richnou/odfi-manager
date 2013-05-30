@@ -343,7 +343,9 @@ This feature is intended for developer who want to locally override a module ins
 parent central $managerHome
 "
 			## Clone private dependencies from this manager to the cloned one to keep everyting in sync
+			## Also copy rights management hooks
 			odfi::git::clone $managerHome/private/odfi-dev-tcl $location/private/odfi-dev-tcl
+			file copy -force $managerHome/* $location/private/odfi-dev-tcl/.git/hooks
 
 			## Boostrap
 			odfi::os::onOs {
