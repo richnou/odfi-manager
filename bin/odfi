@@ -129,9 +129,9 @@ if {$update} {
 	odfi::common::println "- Updating modules"
 	odfi::common::printlnIndent
 
-	## Not Updating non local modules 
+	## Not Updating non local modules
 	#############
-	foreach installedModule [itcl::find objects *local.installed* -class odfi::manager::InstalledModule] {
+	foreach installedModule [itcl::find objects *local.*.installed -class odfi::manager::InstalledModule] {
 
 		odfi::common::println "- [$installedModule name]"
 		$installedModule doUpdate
