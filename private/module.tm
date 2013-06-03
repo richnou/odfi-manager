@@ -478,7 +478,7 @@ namespace eval odfi::manager {
 			} else {
 				set currentBranch "FIXME, Not local install"
 			}
-			
+
 			#
 			## Execute $path/module.odfi as closure if present
 			###############
@@ -521,7 +521,7 @@ namespace eval odfi::manager {
 		################
 		public method doUpdate args {
 
-			
+
 
 
 			## List Versions (branches) from all remotes
@@ -550,7 +550,7 @@ namespace eval odfi::manager {
 			## Check Clean state
 			if {[odfi::git::isClean $path]} {
 
-				odfi::git::pull $path --rebase --quiet
+				odfi::git::pull $path --quiet
 
 				## Setup
 				doSetup
