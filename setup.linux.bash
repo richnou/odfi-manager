@@ -13,7 +13,7 @@ loc="$(dirname "$(readlink -f ${BASH_SOURCE[0]})")"
 #####################
 if [[ -z $(which tclsh) ]]
 then
-	echo "TCL is missing on the system, trying to install"
+	echo "TCL is missing on the system, please install at least TCL 8.5"
 	exit
 fi
 
