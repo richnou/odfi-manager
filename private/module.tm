@@ -681,7 +681,14 @@ namespace eval odfi::manager {
 				set nameWithSep [list $name $sep]
 			}
 
-			set environment [odfi::list::arrayConcat $environment $nameWithSep $value]
+			## String value ?
+			if {[odfi::list::arrayContains $args -string]} {
+				set environment [odfi::list::arrayReplace $environment $nameWithSep $value]
+			} else {
+				set environment [odfi::list::arrayConcat $environment $nameWithSep $value]
+			}
+
+
 
 		}
 
@@ -702,7 +709,15 @@ namespace eval odfi::manager {
 					set name [lindex $name 0]
 				}
 
-				puts $resStream "export $name=\"[join $val $sep]$sep\$$name\""
+				## If only one value, keep the variable content simple
+				if {[llength $val]<=1} {
+					puts $resStream "export $name=\"$val\""
+				} else {
+					puts $resStream "export $name=\"[join $val $sep]$sep\$$name\""
+				}
+
+
+
 
 			}
 
