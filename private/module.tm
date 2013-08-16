@@ -81,6 +81,12 @@ namespace eval odfi::manager {
 				applyFile $configFile
 			}
 
+			## Apply User config files 
+			#################
+			foreach configFile [glob -types f -nocomplain ~/.odfi/*.config] {
+				applyFile $configFile
+			}
+
 			## Installed modules
 			####################
 			set allModules [glob -types d -nocomplain $managerHome/install/*]
@@ -98,6 +104,18 @@ namespace eval odfi::manager {
 			}
 
 
+
+		}
+
+		## Add a module at the specified path that lives outside ODFI manager and is declared as configured by user
+		## It will override any standard installation of the module
+		public method addUserInstalledModule path {
+
+			set installedModuleName [file tail $path]
+			set installedModule [::new odfi::manager::InstalledModule ::${name}.${installedModuleName}.user $path]
+			$installedModule setUser true
+
+			lappend installedModules $installedModule
 
 		}
 
@@ -135,7 +153,8 @@ namespace eval odfi::manager {
 		## @return A list of the installed modules that will be used for loading. The local installed modules override the parent ones
 		public method resolveInstalledModules args {
 
-			## Get From Parents
+			## Get From Parents and this install 
+			########################
 			set resultList {}
 			foreach parent [concat $parents $this] {
 
@@ -162,6 +181,36 @@ namespace eval odfi::manager {
 
 					}
 
+				}
+
+			}
+
+			## Now Resolve user installed modules from this install known modules
+			###########################
+			eachModule {
+
+				## Look for a user install 
+				#puts "User search for module [$module name]"
+				set userModules [itcl::find objects "*[$this name].[$module name].user"]
+
+				if {[llength $userModules]>0} {
+
+					set userModule [lindex $userModules 0]
+
+					#puts "-> Found user module, searching now for: *[$userModule name].installed"
+
+					## Found a user install, then try to replace 
+					set existing [lsearch -glob $resultList "*[$userModule name].installed"]
+
+					## If one exists, replace
+					if {$existing!=-1} {
+						set resultList [lreplace $resultList $existing $existing $userModule]
+					} else {
+
+						## Just add
+						lappend resultList $installedModule
+
+					}
 				}
 
 			}
@@ -284,15 +333,24 @@ namespace eval odfi::manager {
 				## Installation paths
 				#############
 				if {[$module isInstalled]} {
+
 					odfi::common::println "- Installed: yes"
 
 					set installedModule [$module getInstalledModule]
 					$installedModule printInfos
 
-
-
 				} else {
 					odfi::common::println "- Installed: no"
+				}
+
+				if {[$module isUserInstalled]} {
+
+					odfi::common::println "- User Installed: yes"
+					set installedModule [$module getUserInstalledModule]
+					$installedModule printInfos
+
+				} else {
+					odfi::common::println "- User Installed: no"
 				}
 
 				odfi::common::printlnOutdent
@@ -400,10 +458,65 @@ namespace eval odfi::manager {
 
 		}
 
+		## @return true if a user installed module object has been detected
+		public method isUserInstalled args {
+
+			if {[llength [itcl::find objects ${this}.user]]>0} {
+				return 1
+			} else {
+				return 0
+			}
+
+		}
+
+		## @return The first instanciated InstalledModule object with same name is this one, but with .installed appended
+		public method getUserInstalledModule args {
+
+			return [lindex [itcl::find objects ${this}.user] 0]
+
+		}
+		
+		## Update/Install module at specified location as a user module. Quite the same ad normal update, but for custom paths
+		## @param args can contain the installation/update path of the module
+		public method updateLocation path {
+
+			## Installated at location ? 
+			#set installedAtLocation [file exists $path]
+
+			## If not Installed -> Install
+			###############
+			if {![isUserInstalled]} {
+
+				## Choose URL ?
+				if {[catch {set choosenURL [url default]}]} {
+					odfi::common::println "No default URL Provided, check config -> Aborting...."
+					return
+				}
+
+				odfi::git::clone $choosenURL $path
+
+				## Create Module and setup
+				######################
+				set installedModule [::new odfi::manager::InstalledModule ::${fullName}.user $path]
+				$installedModule setUser true
+				$installedModule doSetup
+
+			} else {
+
+				## Update Module
+				######################
+				[getUserModule] doUpdate
+
+
+			}
+
+		}
+
 		## Update or Install the module
 		###################
 		public method update args {
 
+	
 			## If not Installed -> Install
 			###############
 			if {![isInstalled]} {
@@ -421,7 +534,7 @@ namespace eval odfi::manager {
 				odfi::common::println "2 Cloning from $choosenURL into $installationPath"
 				odfi::git::clone $choosenURL $installationPath
 
-				## Create Module
+				## Create Module and setup
 				######################
 				set installedModule [::new odfi::manager::InstalledModule ::${fullName}.installed $installationPath]
 
@@ -465,6 +578,9 @@ namespace eval odfi::manager {
 		## Parameters: name value pairs in list that are resetup before closures evalutation
 		public variable parameters {}
 
+		## true if the installation is outside of ODFI manager and set by the user
+		public variable user false 
+
 		constructor cInstallationPath {
 
 			## Init
@@ -490,6 +606,14 @@ namespace eval odfi::manager {
 
 			return $name
 
+		}
+
+		public method setUser fuser {
+			set user $fuser
+		}
+
+		public method isUser args {
+			return $user
 		}
 
 		## Show installed module informations
