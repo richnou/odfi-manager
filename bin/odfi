@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.5
+#!/usr/bin/env tclsh
 
 ## Load Private Dependencies
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
@@ -34,7 +34,9 @@ if {[catch {
 
 	## Output a message, or none if we are on a known incompatible host
 	puts "# Current host $host is not compatible with odfi, probably missing TCL packages like ITCL"
-	error $res
+	puts "# -> CentOS: yum install itcl tcl"
+	puts "# -> Ubuntu/Debian: aptitude install itcl3 tcl8.5"
+	#error $res
 	exit 0
 }
 
