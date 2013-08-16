@@ -20,15 +20,15 @@ fi
 
 ## Hooks
 ###############
-if [[ ! -f $loc/.git/hooks/post-commit ]]
-then
-	ln -s $loc/hooks/post-commit $loc/.git/hooks/post-commit
-fi
+#if [[ ! -e $loc/.git/hooks/post-commit ]]
+#then
+#	ln -s $loc/hooks/post-commit $loc/.git/hooks/post-commit
+#fi
 
-if [[ ! -f $loc/.git/hooks/post-merge ]]
-then
-	ln -s $loc/hooks/post-merge $loc/.git/hooks/post-merge
-fi
+#if [[ ! -e $loc/.git/hooks/post-merge ]]
+#then
+#	ln -s $loc/hooks/post-merge $loc/.git/hooks/post-merge
+#fi
 
 ## Export Ourselves to PATH
 #################
@@ -48,6 +48,7 @@ while read -r line; do
 
 done <<< "$loadRes"
 
+export ODFI_LOADED=1
 #eval `$loc/bin/odfi --load`
 
 #echo $TCLLIBPATH

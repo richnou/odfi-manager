@@ -81,6 +81,7 @@ namespace eval odfi::manager {
 				applyFile $configFile
 			}
 
+
 			## Installed modules
 			####################
 			set allModules [glob -types d -nocomplain $managerHome/install/*]
@@ -100,6 +101,7 @@ namespace eval odfi::manager {
 
 
 		}
+
 
 		## Return name
 		public method name args {
@@ -474,7 +476,12 @@ namespace eval odfi::manager {
 
 			## FIXME
 			if {[string match *local.* $this]} {
-				set currentBranch [odfi::git::current-branch $path]
+				
+				if {[catch {
+					set currentBranch [odfi::git::current-branch $path]
+				}]} {
+					set currentBranch "unavailable"
+				}
 			} else {
 				set currentBranch "FIXME, Not local install"
 			}
