@@ -78,8 +78,12 @@ Odfi Module Manager:
 
 	argument switch-url type list size 2 optional description "Use as --switch-url installed_module_name url_name to change repository url"
 
-	argument clone optional description "Clone"
+	argument clone optional description "Clone this ODFI installation"
 
+	argument import-module type string optional description "
+	 	Import the specified module in the local folder, and set its path in user config
+	 	Use this if you want to override a module installation with a local installation without cloning the complete ODFI manager
+	 "
 
 }
 
@@ -119,13 +123,13 @@ if {$update} {
 
 	## Update private dependencies
 	odfi::common::println "- Updating Private dependencies"
-	if {[catch  {odfi::git::pull $managerHome/private/odfi-dev-tcl --rebase --quiet}]} {
+	if {[catch  {odfi::git::pull $managerHome/private/odfi-dev-tcl --quiet}]} {
 		odfi::common::println "...cannot update due to local modifications ;)"
 	}
 
 	## Update Ourselves
 	odfi::common::println "- Update Manager"
-	if {[catch {odfi::git::pull $managerHome --rebase --quiet}]} {
+	if {[catch {odfi::git::pull $managerHome --quiet}]} {
 		odfi::common::println "...cannot update due to local modifications ;)"
 	}
 
@@ -307,6 +311,51 @@ if {${switch-url}!=false} {
 
 	exit 0
 
+}
+
+#### Import Module
+#####################
+if {${import-module}!=false} {
+	
+	odfi::common::println "Importing module: ${import-module}"
+
+	## Check argument validity
+	###########
+	set moduleDefinition [lindex [itcl::find objects "${import-module}" -class odfi::manager::Module] 0]
+
+	if {$moduleDefinition==""} {
+
+		odfi::common::println "Module ${import-module} is not present in config file..."
+		exit 0
+	}
+
+	set location [pwd]/[$moduleDefinition name]
+
+	## Ask
+	puts "Import location: $location"
+	puts "Do you want to continue ? (y/n)"
+	switch -glob -- [gets stdin] {
+
+		yes -
+		y {
+
+			## Clone From URL
+			###################
+			$moduleDefinition updateLocation $location
+
+			## Add Installation path to user config
+			##################
+			set f [open ~/.odfi/[$moduleDefinition name].config "w"]
+			puts $f "addUserInstalledModule $location"
+			flush $f
+			close $f
+		}
+		default {
+			puts "Aborting...."
+		}
+	}
+
+	exit 0
 }
 
 #### Clone
