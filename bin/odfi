@@ -117,13 +117,13 @@ if {$update} {
 
 	## Update private dependencies
 	odfi::common::println "- Updating Private dependencies"
-	if {[catch  {odfi::git::pull $managerHome/private/odfi-dev-tcl --rebase --quiet}]} {
+	if {[catch  {odfi::git::pull $managerHome/private/odfi-dev-tcl --quiet}]} {
 		odfi::common::println "...cannot update due to local modifications ;)"
 	}
 
 	## Update Ourselves
 	odfi::common::println "- Update Manager"
-	if {[catch {odfi::git::pull $managerHome --rebase --quiet}]} {
+	if {[catch {odfi::git::pull $managerHome --quiet}]} {
 		odfi::common::println "...cannot update due to local modifications ;)"
 	}
 
