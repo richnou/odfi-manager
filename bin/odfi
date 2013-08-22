@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+#!/usr/bin/env tclsh8.5
 
 ## Load Private Dependencies
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
@@ -121,6 +121,26 @@ if {$info} {
 #####################
 if {$update} {
 
+	## Are we in a module install path ? 
+	###############################
+	set location [file normalize [pwd]]
+	foreach installedModule [odfi.local resolveInstalledModules] {
+
+		## -> Yes ! Only update the module
+		set moduleLocation [file normalize [$installedModule getPath]]
+		if {[string match "${moduleLocation}*" $location]} {
+
+			puts "Update running only for current module: [$installedModule name] "
+
+			$installedModule doUpdate
+
+			exit 0
+		}
+
+	}
+
+	
+
 	## Update private dependencies
 	odfi::common::println "- Updating Private dependencies"
 	if {[catch  {odfi::git::pull $managerHome/private/odfi-dev-tcl --quiet}]} {
@@ -136,8 +156,8 @@ if {$update} {
 	odfi::common::println "- Updating modules"
 	odfi::common::printlnIndent
 
-	## Not Updating non local modules
-	#############
+	## Update installed modules 
+	###############
 	foreach installedModule [itcl::find objects *local.*.installed -class odfi::manager::InstalledModule] {
 
 		odfi::common::println "- [$installedModule name]"

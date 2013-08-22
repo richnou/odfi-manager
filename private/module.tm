@@ -625,6 +625,10 @@ namespace eval odfi::manager {
 			return $user
 		}
 
+		public method getPath args {
+			return $path
+		}
+
 		## Show installed module informations
 		public method printInfos args {
 
@@ -679,18 +683,16 @@ namespace eval odfi::manager {
 			## Update current
 			#######################
 			odfi::common::println "- Current version: $currentBranch"
+			odfi::git::pull $path --quiet
+
+			## Setup
+			doSetup
 
 			## Check Clean state
-			if {[odfi::git::isClean $path]} {
-
-				odfi::git::pull $path --quiet
-
-				## Setup
-				doSetup
-
-			} else {
-				odfi::common::println "The module installation is not clean, you have changes you should check before updating!"
-			}
+			#if {[odfi::git::isClean $path]} {
+			#} else {
+			#	odfi::common::println "The module installation is not clean, you have changes you should check before updating!"
+			#}
 
 
 
