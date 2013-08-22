@@ -6,6 +6,13 @@ loc="$(dirname "$(readlink -f ${BASH_SOURCE[0]})")"
 
 #echo "ODFI Module Manager is at: $loc"
 
+debug=false
+if [[ -n $1 && "$1" == "--debug" ]]
+then
+	debug=true
+fi
+
+
 ## System Dependencies
 ###############
 
@@ -43,6 +50,11 @@ loadRes=`$loc/bin/odfi --load`
 while read -r line; do
 
     #echo "Showing line2: $line"
+#	echo $line
+	if [[ $debug == true ]]
+	then
+		echo $line
+	fi
 
     eval $line
 
