@@ -846,7 +846,7 @@ namespace eval odfi::manager {
 
 				## If only one value, keep the variable content simple
 				if {[llength $val]<=1} {
-					puts $resStream "export $name=\"$val\""
+					puts $resStream "export $name=\"$val$sep\$$name\""
 				} else {
 					puts $resStream "export $name=\"[join $val $sep]$sep\$$name\""
 				}
