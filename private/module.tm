@@ -221,10 +221,10 @@ namespace eval odfi::manager {
 
 			## Add All User modules to output 
 			################
-			foreach userModule [itcl::find objects "*[$this name].[$module name].user"] {
+			foreach userModule [itcl::find objects "*[$this name].*.user"] {
 
 				lappend resultList $userModule
-				
+
 			}
 
 			return $resultList
