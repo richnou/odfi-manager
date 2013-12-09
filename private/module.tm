@@ -826,7 +826,8 @@ namespace eval odfi::manager {
 
 			## String value ?
 			if {[odfi::list::arrayContains $args -string]} {
-				set environment [odfi::list::arrayReplace $environment $nameWithSep $value]
+				#puts "Single value for env: $name"
+				set environment [odfi::list::arrayReplace $environment $nameWithSep [list $value -overwrite]]
 			} else {
 				set environment [odfi::list::arrayConcat $environment $nameWithSep $value]
 			}
@@ -845,6 +846,24 @@ namespace eval odfi::manager {
 			################
 			foreach {name val} $environment {
 
+				## Single Value or concat to existing ? 
+				if {[odfi::list::arrayContains $val -overwrite]} {
+					set finalVal [odfi::list::arrayDelete $val -overwrite]
+				} else {
+
+					## Not a single value, so try to concat with existing
+					if {[llength [array get ::env $name]]>0} {
+
+						## A value exists in env
+						set finalVal [concat $val "\$$name"]
+
+					} else {
+						set finalVal $val
+					}
+
+				}
+
+
 				## name can be a list with separator specified
 				set sep :
 				if {[llength $name]>1} {
@@ -853,12 +872,19 @@ namespace eval odfi::manager {
 				}
 
 				## If only one value, keep the variable content simple
-				if {[llength $val]<=1} {
-					puts $resStream "export $name=\"$val$sep\$$name\""
+				#set varContent
+				if {[llength $finalVal]<=1} {
+					set varContent $finalVal
+					#puts $resStream "export $name=\"$val$sep\$$name\""
+					puts $resStream "export $name=\"$varContent\""
 				} else {
-					puts $resStream "export $name=\"[join $val $sep]$sep\$$name\""
+
+					set varContent [join $finalVal $sep]
+					#puts $resStream "export $name=\"[join $val $sep]$sep\$$name\""
+					puts $resStream "export $name=\"$varContent\""
 				}
 
+				## Don't overwrite existing variable
 
 
 
