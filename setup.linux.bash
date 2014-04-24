@@ -21,7 +21,7 @@ fi
 if [[ -z $(which tclsh) ]]
 then
 	echo "TCL is missing on the system, please install at least TCL 8.5"
-	exit
+	return -1
 fi
 
 
@@ -46,6 +46,22 @@ export PATH="$loc/bin:$PATH"
 #$loc/bin/odfi --load
 
 loadRes=`$loc/bin/odfi --load`
+
+## If Return code is not 0, an error occured
+if [[ $? != 0 ]]; 
+then
+  echo "ODFI Loading failed: "
+  
+  ## Show output
+  while read -r line; do
+
+    echo $line
+
+    done <<< "$loadRes"
+
+   # exit $ERROR_CODE
+	return $ERROR_CODE
+fi
 
 while read -r line; do
 

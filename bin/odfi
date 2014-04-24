@@ -37,7 +37,7 @@ if {[catch {
 	puts "# -> CentOS: yum install itcl tcl"
 	puts "# -> Ubuntu/Debian: aptitude install itcl3 tcl8.5"
 	#error $res
-	exit 0
+	exit -1
 }
 
 
@@ -389,7 +389,8 @@ This feature is intended for developer who want to locally override a module ins
 
 	## Prepare location
 	###########################
-	set location [pwd]/modules-manager
+	#set location [pwd]/modules-manager
+	set location [file normalize ~]/modules-manager
 	puts "Clone location: $location"
 
 	## Ask
@@ -441,3 +442,5 @@ parent central $managerHome
 
 
 tool usage
+
+exit -1
