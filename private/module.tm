@@ -855,8 +855,9 @@ namespace eval odfi::manager {
 				puts "# VAR /$name/ -> $val -> "
 
 				## Single Value or concat to existing ? 
-				if {[odfi::list::arrayContains $val -overwrite]} {
-					set finalVal [odfi::list::arrayDelete $val -overwrite]
+				set overwriteIndex [lsearch -exact $val -overwrite]
+				if {$overwriteIndex!=-1} {
+					set finalVal [lreplace $val $overwriteIndex $overwriteIndex]
 				} else {
 
 					## Not a single value, so try to concat with existing
