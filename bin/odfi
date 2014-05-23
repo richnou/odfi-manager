@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+#!/usr/bin/env tclsh8.5
 
 ## Load Private Dependencies
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
