@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.5
+#!/usr/bin/env tclsh
 
 ## Load Private Dependencies
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
@@ -264,7 +264,7 @@ if {$remove != false} {
 #####################
 if {$load} {
 
-	puts "#Loading ODFI"
+	puts "# Loading ODFI"
 	odfi::manager::LoadResult loadResult
 
 	## Add The manager to bin

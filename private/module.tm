@@ -818,14 +818,16 @@ namespace eval odfi::manager {
 
 			## Separator specified ?
 			set nameWithSep $name
-			if {[odfi::list::arrayContains $args -separator]} {
+			set separatorIndex [lsearch -exact $args -separator]
+			if {$separatorIndex!=-1} {
 
-				set sep [odfi::list::arrayGet $args -separator]
+				set sep [lindex $args [expr $separatorIndex+1]]
 				set nameWithSep [list $name $sep]
 			}
 
 			## String value ?
-			if {[odfi::list::arrayContains $args -string]} {
+			set stringIndex [lsearch -exact $args -string]
+			if {$stringIndex!=-1} {
 				#puts "Single value for env: $name"
 				set environment [odfi::list::arrayReplace $environment $nameWithSep [list $value -overwrite]]
 			} else {
@@ -844,7 +846,13 @@ namespace eval odfi::manager {
 
 			## ENV
 			################
-			foreach {name val} $environment {
+			foreach entry $environment {
+
+				set name [lindex $entry 0]
+				set val [lindex $entry 1]
+				
+
+				puts "# VAR /$name/ -> $val -> "
 
 				## Single Value or concat to existing ? 
 				if {[odfi::list::arrayContains $val -overwrite]} {
@@ -854,6 +862,7 @@ namespace eval odfi::manager {
 					## Not a single value, so try to concat with existing
 					if {[llength [array get ::env $name]]>0} {
 
+						puts "# Concat with $val"
 						## A value exists in env
 						set finalVal [concat $val "\$$name"]
 
