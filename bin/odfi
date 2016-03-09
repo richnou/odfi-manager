@@ -287,6 +287,7 @@ if {$load} {
 	############
 	odfi::os::onOs {
 		linux* {
+			puts "# Output to bash"
 			puts "[loadResult toBash]"
 		}
 	}
