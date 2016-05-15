@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.5
+#!/usr/bin/env tclsh86
 
 ## Load Private Dependencies
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
@@ -285,12 +285,17 @@ if {$load} {
 
 	## Output result to underlying command line
 	############
-	odfi::os::onOs {
-		linux* {
-			puts "# Output to bash"
-			puts "[loadResult toBash]"
-		}
-	}
+	puts "[loadResult toBash]"
+	#odfi::os::onOs {
+	#	linux* {
+	#		puts "[loadResult toBash]"
+	#	}
+#
+	#	windows*  {
+	#		puts "[loadResult toBash]"
+	#	}
+	#}
+>>>>>>> Always use bash env output
 
 	exit 0
 }
