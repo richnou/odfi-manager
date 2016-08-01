@@ -1,453 +1,198 @@
 #!/usr/bin/env tclsh
 
+#set argv {odfi/show odfi}
+set argv info
+set argv {install eda/hdl/rfg3}
+
+set argv {duckdoc --info}
+#puts "Test: $argv"
+set argv {install eda/utils}
+set argv info
+set argv duckdoc/serveModules
+set argv update
+set argv scm/isClean
+
+## Puts override to handle adding comment marker to beginning of line
+set putsPrefix "#"
+proc pPuts args {
+    ::puts ${::putsPrefix}[lindex $args end]
+}
+
+#puts "A: [array get env]" 
+
+#exit
+
+## Arguments
+#######################
+set version 3.0.0
+
+proc isArgument arg {
+    set argIndex [lsearch -exact $::argv $arg]
+    if {$argIndex!=-1} {
+        return true
+    }
+}
+
+proc consumeArgument {argName script} {
+    
+    set argIndex [lsearch -exact $::argv $argName]
+    if {$argIndex!=-1} {
+    
+        ## take value if necessary
+        ## and remove arg from argv
+        set val true
+        if {[string match "--*" $argName]} {
+            set val [lindex $::argv [expr $argIndex +1]]
+            uplevel set argValue $val
+            
+            set ::argv [lreplace $::argv $argIndex [expr $argIndex +1]]
+        } else {
+            set ::argv [lreplace $::argv $argIndex $argIndex]
+        }   
+        
+        uplevel $script
+       
+        
+        return $val
+    }
+    
+    return false
+}
+
+## Remove all -xxx and --xxx arguments before the first non config argument in argv list
+proc removeConfigArguments args {
+
+    set stop false
+    while {!$stop} {
+        
+        set firstArg [lindex $::argv 0]
+        if {$firstArg=="" || ![string match "-*" $firstArg]} {
+            set stop true
+        } else {
+            
+            ## Remove arg
+            set ::argv [lreplace $::argv 0 0]
+            
+            ## If "--" then remove the next argument as well
+            if {[string match "--*" $firstArg]} {
+                set ::argv [lreplace $::argv 0 0]
+            }
+        }
+    
+    }
+}
+
+## Welcome
+########################
+
+set asciiLogo {
+ ██████╗ ██████╗ ███████╗██╗
+ ██╔═══██╗██╔══██╗██╔════╝██║
+ ██║   ██║██║  ██║█████╗  ██║
+ ██║   ██║██║  ██║██╔══╝  ██║
+ ╚██████╔╝██████╔╝██║     ██║
+  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝  
+}
+
+
+
+
+## Version and stat
+#################
+consumeArgument -info {
+    
+    puts "ODFI Version: $version"
+    puts "TCL Version: [info tclversion]"
+
+}
+
 ## Load Private Dependencies
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
 #####################
 
 set managerHome [file normalize [file dirname [info script]]/../]
 
-#### ODFI Dev TCL
-if {![file exists $managerHome/private/odfi-dev-tcl/]} {
+set dependencies {
 
-	#puts "
-# Private Dependency ODFI dev tcl is missing.
-# Trying to clone using command line call -> This is the only way to solve that for now.
-# It this fails, simply install the master version there: $managerHome/private/odfi-dev-tcl
-#"
-    catch {puts [exec git clone https://github.com/unihd-cag/odfi-dev-tcl.git  $managerHome/private/odfi-dev-tcl]}
+    odfi::closures 3.0.0 https://github.com/unihd-cag/odfi-dev-tcl.git odfi-dev-tcl tcl/pkgIndex.tcl
 
 }
 
+foreach {p version sources outPath indexFile} $dependencies {
+    
+    if {[catch {package require $p $version}]} {
+        if {![file exists $managerHome/private/$outPath] && [catch {puts [exec git clone $sources  $managerHome/private/$outPath]} res]} {
+            error "Could not load package $p , and cloning sources failed: $res"
+        }
+        source $managerHome/private/$outPath/$indexFile
+    }
+}
 
-if {[catch {
-	source $managerHome/private/odfi-dev-tcl/tcl/common.tm
-	source $managerHome/private/odfi-dev-tcl/tcl/closures-2.1.0.tm
-	source $managerHome/private/odfi-dev-tcl/tcl/list-2.0.0.tm
-	source $managerHome/private/odfi-dev-tcl/tcl/files-1.0.0.tm
-	source $managerHome/private/odfi-dev-tcl/tcl/git-1.0.0.tm
-	source $managerHome/private/odfi-dev-tcl/tcl/tool-1.0.0.tm
-	source $managerHome/private/odfi-dev-tcl/tcl/os-1.0.0.tm
-} res]} {
+## Load language definition
+source $managerHome/private/odfi.tm
 
-	## An error occured here, exit
-	#######
-	set host [info hostname]
 
-	## Output a message, or none if we are on a known incompatible host
-	puts "# Current host $host is not compatible with odfi, probably missing TCL packages like ITCL"
-	puts "# Error Message: $res"
-	puts "# -> CentOS: yum install itcl tcl"
-	puts "# -> Ubuntu/Debian: aptitude install itcl3 tcl8.5"
-	#error $res
-	exit -1
+## Create Default ODFI Instance
+###################
+set odfi [::odfi::odfi default]
+
+## Create Default Configs
+#######################
+
+#### Main Config is the tools installation ########
+
+set defaultConfig [$odfi getConfig main]
+
+## Main Tool COnfig
+foreach confFile [glob -nocomplain $managerHome/*.config.tcl] {
+    #$odfi config $confFile
+    $defaultConfig apply  {
+        source $confFile
+    }
+}
+
+## Load all the repostiory descriptions
+foreach repoFile [glob -nocomplain $managerHome/repositories/*.repo.tcl] {
+    #$odfi config $confFile
+    $defaultConfig apply  {
+        source $repoFile
+    }
 }
 
 
-## Local definitions
-source $managerHome/private/module.tm
+#### User config ####
+set userConfig [$odfi config user {
 
-## Load ODFI configuration (config and installed modules)
-####################
-::new odfi::manager::ODFI odfi.local $managerHome
-
-
-
-## Go on
-################
-odfi::tool::describe {
-
-	set description "
-
-Odfi Module Manager:
-
-	- Install/Update module
-	- Load modules to environment
-"
-
-	argument info optional description "Provide some general infos about installation"
-
-	argument list optional description "List available modules, versions and installed one"
-
-	argument load optional description "Load installation"
-
-	argument install type string optional description "Install or update a module"
-
-	argument update optional description "Tries to Update all the modules"
-
-	argument setup type string optional description "Call setup on specified module name"
-
-	argument remove type string optional description "Removes a local module"
-
-	argument switch-url type list size 2 optional description "Use as --switch-url installed_module_name url_name to change repository url"
-
-	argument clone optional description "Clone this ODFI installation"
-
-	argument import-module type string optional description "
-	 	Import the specified module in the local folder, and set its path in user config
-	 	Use this if you want to override a module installation with a local installation without cloning the complete ODFI manager
-	 "
-
-}
-
-tool parseArguments
+    :installPath set ${::env(HOME)}/.odfi/install
+    
+    foreach userConfigFile [global -nocomplain -directory $::env(HOME)/.odfi/ *.module.tcl] {
+        source $userConfigFile
+    }
+    
+}]
 
 
-#### Info
-##########################
-if {$info} {
 
-	## Print General Infos
-	###########################
-	odfi.local printInfos
+## Get all modules
+$odfi gatherModules
 
+## Start
+########
 
-	## Show Resolved list
-	##############################
-	odfi::common::println "- Resolved installed modules list for load:"
-
-	odfi::common::printlnIndent
-	foreach installedModule [odfi.local resolveInstalledModules] {
-
-
-		odfi::common::println "- $installedModule"
-
-	}
-	odfi::common::printlnOutdent
-
-	exit 0
+## don't put logo on windows
+if {![::odfi::os::isWindows]} {
+    pPuts $asciiLogo
 }
 
 
+## Consume all arguments until first one is a non configuration argument
+removeConfigArguments
 
-#### Update
-#####################
-if {$update} {
+## Remaining Command
 
-	## Are we in a module install path ? 
-	###############################
-	set location [file normalize [pwd]]
-	foreach installedModule [odfi.local resolveInstalledModules] {
+set mainCommand [lindex $::argv 0]
 
-		## -> Yes ! Only update the module
-		set moduleLocation [file normalize [$installedModule getPath]]
-		if {[string match "${moduleLocation}*" $location]} {
+pPuts "Main Command: $mainCommand -> $::argv"
 
-			puts "Update running only for current module: [$installedModule name] "
+$odfi runCommand $mainCommand [lrange $::argv 1 end]
 
-			$installedModule doUpdate
-
-			exit 0
-		}
-
-	}
-
-	
-
-	## Update private dependencies
-	odfi::common::println "- Updating Private dependencies"
-	if {[catch  {odfi::git::pull $managerHome/private/odfi-dev-tcl --quiet}]} {
-		odfi::common::println "...cannot update due to local modifications ;)"
-	}
-
-	## Update Ourselves
-	odfi::common::println "- Update Manager"
-	if {[catch {odfi::git::pull $managerHome --quiet}]} {
-		odfi::common::println "...cannot update due to local modifications ;)"
-	}
-
-	odfi::common::println "- Updating modules"
-	odfi::common::printlnIndent
-
-	## Update installed modules 
-	###############
-	foreach installedModule [itcl::find objects *local.*.installed -class odfi::manager::InstalledModule] {
-
-		odfi::common::println "- [$installedModule name]"
-		$installedModule doUpdate
-
-	}
-	odfi::common::printlnOutdent
-
-
-	exit 0
-
-}
-
-#### Install
-#####################
-if {$install!=false} {
-
-	odfi::common::println "Installing module: $install"
-
-	## Check argument validity
-	###########
-
-	set moduleDefinition [lindex [itcl::find objects "$install" -class odfi::manager::Module] 0]
-
-	if {$moduleDefinition==""} {
-
-		odfi::common::println "Module $install is not present in config file..."
-		exit 0
-	}
-
-
-
-
-	## Update/Install
-	#####################
-	$moduleDefinition update
-
-
-	exit 0
-
-}
-
-
-#### Setup
-#####################
-if {$setup!=false} {
-
-	odfi::common::println "Setup module: $setup"
-
-	## Check argument validity
-	###########
-	set moduleDefinition [lindex [itcl::find objects "$setup" -class odfi::manager::Module] 0]
-
-	if {$moduleDefinition==""} {
-
-		odfi::common::println "Module $setup is not present in config file..."
-		exit 0
-	}
-	if {![$moduleDefinition isInstalled]} {
-
-		odfi::common::println "Module $setup is not installed..."
-		exit 0
-	}
-
-	[$moduleDefinition getInstalledModule] doSetup
-
-
-	exit 0
-
-}
-
-#### Remove
-####################
-if {$remove != false} {
-
-	odfi::common::println "Remove module: $remove"
-
-	## Check argument validity
-	###########
-	set moduleDefinition [lindex [itcl::find objects "$remove" -class odfi::manager::Module] 0]
-
-	if {$moduleDefinition==""} {
-
-		odfi::common::println "Module $remove is not present in config file..."
-		exit 0
-	}
-
-	if {![$moduleDefinition isInstalled]} {
-
-		odfi::common::println "Module $remove is not installed..."
-		exit 0
-	}
-
-	[$moduleDefinition getInstalledModule] remove
-
-
-	exit 0
-
-}
-
-#### Load
-#####################
-if {$load} {
-
-	puts "# Loading ODFI"
-	odfi::manager::LoadResult loadResult
-
-	## Add The manager to bin
-	###################
-	loadResult env PATH $managerHome/bin
-
-	## Load Modules
-	##############################""
-
-
-	foreach installedModule [odfi.local resolveInstalledModules] {
-
-		## Call Load on module
-		################
-		$installedModule doLoad loadResult
-
-	}
-
-	## Output result to underlying command line
-	############
-	puts "[loadResult toBash]"
-	#odfi::os::onOs {
-	#	linux* {
-	#		puts "[loadResult toBash]"
-	#	}
-#
-	#	windows*  {
-	#		puts "[loadResult toBash]"
-	#	}
-	#}
-
-	exit 0
-}
-
-
-#### Switch URL
-#########################
-if {${switch-url}!=false} {
-
-	set project [lindex ${switch-url} 0]
-	set url 	[lindex ${switch-url} 1]
-
-	odfi::common::println "Requested Switch URL for $project, to url $url"
-
-	## Check Project exists
-	###########
-	set moduleDefinition [lindex [itcl::find objects "$project" -class odfi::manager::Module] 0]
-
-	if {$moduleDefinition==""} {
-
-		odfi::common::println "Module $project is not present in config file..."
-		exit 0
-	}
-
-	if {![$moduleDefinition isInstalled]} {
-
-		odfi::common::println "Module $project is not installed..."
-		exit 0
-	}
-
-	## Check URL exists
-	###############
-	if {![$moduleDefinition hasUrl $url]} {
-
-		odfi::common::println "Requested url $url is not defined..."
-		exit 0
-	}
-
-	[$moduleDefinition getInstalledModule] switch-url $url [$moduleDefinition url $url]
-
-
-	exit 0
-
-}
-
-#### Import Module
-#####################
-if {${import-module}!=false} {
-	
-	odfi::common::println "Importing module: ${import-module}"
-
-	## Check argument validity
-	###########
-	set moduleDefinition [lindex [itcl::find objects "${import-module}" -class odfi::manager::Module] 0]
-
-	if {$moduleDefinition==""} {
-
-		odfi::common::println "Module ${import-module} is not present in config file..."
-		exit 0
-	}
-
-	set location [pwd]/[$moduleDefinition name]
-
-	## Ask
-	puts "Import location: $location"
-	puts "Do you want to continue ? (y/n)"
-	switch -glob -- [gets stdin] {
-
-		yes -
-		y {
-
-			## Clone From URL
-			###################
-			$moduleDefinition updateLocation $location
-
-			## Add Installation path to user config
-			##################
-			set f [open ~/.odfi/[$moduleDefinition name].config "w"]
-			puts $f "addUserInstalledModule $location"
-			flush $f
-			close $f
-		}
-		default {
-			puts "Aborting...."
-		}
-	}
-
-	exit 0
-}
-
-#### Clone
-####################
-if {$clone} {
-
-	puts "
-WARNING: This will duplicate this module manager to specified location
-This feature is intended for developer who want to locally override a module installation
-"
-
-	## Prepare location
-	###########################
-	#set location [pwd]/modules-manager
-	set location [file normalize ~]/modules-manager
-	puts "Clone location: $location"
-
-	## Ask
-	puts "Do you want to continue ? (y/n)"
-	switch -glob -- [gets stdin] {
-
-		yes -
-		y {
-
-			## Get origin
-			set cloneURL $managerHome
-
-			## Cloning
-			puts ""
-			puts "Cloning Manager from $cloneURL"
-
-			odfi::git::clone $cloneURL $location
-
-			## Create config file for parent
-			set parentConfigFile [open $location/odfi.parent.config "w+"]
-			puts $parentConfigFile "
-## Config from clone operation to set source manager from $managerHome as parent
-parent central $managerHome
-"
-			## Clone private dependencies from this manager to the cloned one to keep everyting in sync
-			## Also copy rights management hooks
-			odfi::git::clone $managerHome/private/odfi-dev-tcl $location/private/odfi-dev-tcl
-			file copy -force $managerHome/* $location/private/odfi-dev-tcl/.git/hooks
-
-			## Boostrap
-			odfi::os::onOs {
-				linux* {
-					puts "Calling setup once on the cloned manager to ensure correct setup"
-					puts [exec bash $location/setup.linux.bash]
-				}
-			}
-
-		}
-		default {
-			puts "Aborting."
-		}
-	}
-
-
-	exit 0
-
-}
-
-
-
-tool usage
-
-exit -1

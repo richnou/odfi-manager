@@ -1,0 +1,1 @@
+package provide odfi::test::module::c 1.0.0
