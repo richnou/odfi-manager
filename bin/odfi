@@ -132,7 +132,7 @@ if {[file exists $privateDevTCLLocation/tcl/pkgIndex.tcl]} {
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
 } else {
     puts "Initialising TCL Devlib..."
-    exec git clonehttps://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation
+    exec git clone https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
 }
 
