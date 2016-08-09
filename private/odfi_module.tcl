@@ -9,6 +9,15 @@
     
     :command modules {
     
+        :log:raw "Fast Informations on modules"
+        [:getODFI] shade { if {[string match ::odfi::Module [$it info class]] && [$it isPhysical]} { return true} else {return false} } walkDepthFirstPreorder {
+
+            :log:raw "Module [$node getFullName]"
+
+
+        }
+
+        return
         [:getODFI] shade ::odfi::Config eachChild {
             odfi::common::println "Config: [$it name get]"
             
@@ -35,8 +44,10 @@
     
     :command repositories {
         
-        [:getODFI] shade odfi::repo::Repository eachChild {
-        
+        :log:raw "Repositories information"
+        [:getODFI] shade ::odfi::repo::Module walkDepthFirstPreorder {
+            
+            :log:raw "Module [$node getFullName]"
         
         }
     }
@@ -65,7 +76,7 @@
             
                 [$it shade ::odfi::repo::Repository children] @> map {
                     repository => 
-                        set res [$repository findModule $targetModule]
+                        ::set res [$repository findModule $targetModule]
                         puts "Found module $targetModule : $res"
                         return $res
                 } @> filter { if {$it==""} { return false } else { return true} } 
@@ -244,7 +255,7 @@
             ## Source prescripts
             #puts "Prescripts: [[$runEnv shade ::odfi::environment::PreScript firstChild]  path get]"
             [$runEnv shade ::odfi::environment::PreScript children] @> filter { return [string match "*.tcl" [$it path get]] } @> foreach {
-                #puts "Sourcing prescript"
+                #puts "Sourcing prescript [$it path get]" 
                 $runInterpreter eval [list source [$it path get]]
             }
             
@@ -295,4 +306,9 @@
     ## SCM Support
     ###################
     [:getConfig] addChild [::odfi::scm::Git new]
+
+
+    ## Load Gui Command
+    ###############
+    source [file dirname [info script]]/gui/odfi_module_guicommand.tcl
 }

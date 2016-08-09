@@ -1,16 +1,6 @@
 #!/usr/bin/env tclsh
 
-#set argv {odfi/show odfi}
-set argv info
-set argv {install eda/hdl/rfg3}
 
-set argv {duckdoc --info}
-#puts "Test: $argv"
-set argv {install eda/utils}
-set argv info
-set argv duckdoc/serveModules
-set argv update
-set argv scm/isClean
 
 ## Puts override to handle adding comment marker to beginning of line
 set putsPrefix "#"
@@ -21,6 +11,8 @@ proc pPuts args {
 #puts "A: [array get env]" 
 
 #exit
+
+
 
 ## Arguments
 #######################
@@ -86,6 +78,7 @@ proc removeConfigArguments args {
 ########################
 
 set asciiLogo {
+
  ██████╗ ██████╗ ███████╗██╗
  ██╔═══██╗██╔══██╗██╔════╝██║
  ██║   ██║██║  ██║█████╗  ██║
@@ -93,7 +86,6 @@ set asciiLogo {
  ╚██████╔╝██████╔╝██║     ██║
   ╚═════╝ ╚═════╝ ╚═╝     ╚═╝  
 }
-
 
 
 
@@ -110,7 +102,14 @@ consumeArgument -info {
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
 #####################
 
+
 set managerHome [file normalize [file dirname [info script]]/../]
+
+
+## If there is a main devtcl installation, use it instead of local one ?
+#if {[file exists $managerHome/install/main/tcl/devlib/master/tcl/pkgIndex.tcl]} {
+#    puts "Using "
+#}
 
 set dependencies {
 
@@ -128,6 +127,9 @@ foreach {p version sources outPath indexFile} $dependencies {
     }
 }
 
+
+
+
 ## Load language definition
 source $managerHome/private/odfi.tm
 
@@ -144,12 +146,20 @@ set odfi [::odfi::odfi default]
 set defaultConfig [$odfi getConfig main]
 
 ## Main Tool COnfig
-foreach confFile [glob -nocomplain $managerHome/*.config.tcl] {
+foreach confFile [glob -nocomplain $managerHome/configs/*.config.default.tcl] {
     #$odfi config $confFile
     $defaultConfig apply  {
         source $confFile
     }
 }
+
+foreach confFile [glob -nocomplain $managerHome/configs/*.config.tcl] {
+    #$odfi config $confFile
+    $odfi apply  {
+        source $confFile
+    }
+}
+
 
 ## Load all the repostiory descriptions
 foreach repoFile [glob -nocomplain $managerHome/repositories/*.repo.tcl] {
@@ -171,6 +181,7 @@ set userConfig [$odfi config user {
     
 }]
 
+#### Other configs #
 
 
 ## Get all modules
@@ -181,14 +192,53 @@ $odfi gatherModules
 
 ## don't put logo on windows
 if {![::odfi::os::isWindows]} {
-    pPuts $asciiLogo
+    puts $asciiLogo
 }
 
 
 ## Consume all arguments until first one is a non configuration argument
 removeConfigArguments
 
-## Remaining Command
+## Remaining Commands
+###################
+proc splitToString {lst splitStr} {
+
+    set finalres {}
+    set lres {}
+    foreach elt $lst {
+
+        if {$elt!=$splitStr} {
+            lappend lres $elt 
+        } else {
+            lappend finalres $lres
+            set lres {}
+        }
+
+    }
+    lappend finalres $lres
+
+    return $finalres
+
+}
+set commands [splitToString $::argv "--"]
+#puts "CMDS: $commands"
+#exit
+foreach cmd $commands {
+
+
+
+    set cmd [string trim $cmd]
+    if {$cmd!=""} {
+        set mainCommand [lindex $cmd 0]
+        $odfi runCommand $mainCommand [lrange $cmd 1 end]
+    }
+
+    
+
+    #puts "Command: $cmd"
+}
+
+exit 0
 
 set mainCommand [lindex $::argv 0]
 

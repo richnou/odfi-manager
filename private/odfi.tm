@@ -73,8 +73,11 @@ namespace eval odfi {
             +method loadIndexScripts args {
                 
                 set env [:env:environment]
+                $env buildFromModules
+
                 [$env shade ::odfi::environment::PreScript children] @> filter { return [string match "*.tcl" [$it path get]] } @> foreach {
                     #puts "Sourcing prescript [$it path get]"
+                    
                     source [$it path get]
                 }
             }
@@ -85,6 +88,20 @@ namespace eval odfi {
                 :shade ::odfi::Module walkDepthFirstLevelOrder {
                     
                     if {![$node isClass ::odfi::repo::Module]} {
+                        $modules += $node
+                    }
+                    return false
+                }
+                
+                return $modules
+            }
+
+            +method getAllPhysicalModules args {
+                
+                set modules [::odfi::flist::MutableList new]
+                :shade ::odfi::Module walkDepthFirstLevelOrder {
+                    
+                    if {![$node isClass ::odfi::repo::Module] && [$node isPhysical]} {
                         $modules += $node
                     }
                     return false
@@ -132,7 +149,14 @@ namespace eval odfi {
                         
                         
                     }
-                    
+
+                    ## GIT
+                    :addModuleFolderHeuristic {
+                        if {[file exists $dir/.git]} {
+                            return true 
+                        }
+                        return false
+                    }
                     
                 }
                 
@@ -165,7 +189,38 @@ namespace eval odfi {
                         :registerEventPoint contentUpdated directory
                         :registerEventPoint postBuild
                     }
-                    
+
+                    +method getFullName args {
+
+                        return [:shade { if {[$it isClass ::odfi::Module] ||  [$it isClass ::odfi::Group]  ||  [$it isClass ::odfi::Config]} { return true} else {return false} } formatHierarchyString {
+                            if {[$it isClass ::odfi::Config]} {
+                                return "@[$it name get]"
+                            } else {
+                                return "[$it name get]"
+                            }
+                        } /]
+
+                    }
+
+                    ## Resolve directory based on parents
+                    +method getDirectory args {
+
+                        set currentDirectory [:directory get]
+
+
+                        set currentNode [:parent]
+
+                        ## Determine File relative info not using file, because it might not exist
+                        ## Unix: /xxxxx is absolute
+                        ## Windows: LETTER:xxxxx is absolute
+                        while {$currentNode!="" && ![string match "/*" $currentDirectory] && ![string match "\[a-zA-Z\]:*" $currentDirectory]  } {
+                            set currentDirectory [$currentNode directory get]/$currentDirectory
+                            set currentNode [$currentNode parent]
+                        }
+
+                        return $currentDirectory
+
+                    }
                    
                     
                     ## Setup
@@ -331,11 +386,34 @@ namespace eval odfi {
                     +type Runnable : NameDescription {
                         
                         +builder {
-                            :log:setPrefix [[:parent] name get].$name
+
+                            if {![:isRoot]} {
+                                :log:setPrefix [[:parent] name get].$name
+                            }
+                            
                         }
                         
                         :arg value {
                         
+                        }
+
+                        ## Utilities
+                        #############
+
+                        ## Writes the Command Environment to the target file, and then the provided content using the richstream template api
+                        +method externalScriptWithEnvironment {file content} {
+
+                            :env:environment {
+                                :buildUp ::odfi::Module
+                                :toBash $file
+                                :detach
+                            }
+
+                            ::odfi::richstream::template::stringToFile $content $file -append
+                        }
+
+                        +method runCommand {path args} {
+                            return [[:getODFI ] runCommand $path [join $args]]
                         }
                         
                         
@@ -343,10 +421,48 @@ namespace eval odfi {
                     }
                     
                     :command : Runnable name script {
+
                         +method run args {
                             #puts "Running command $args"
+
+                            set location [pwd]
+
                             eval ${:script}
                         }
+
+                        
+                    }
+
+                    :preCommand : Runnable name script {
+
+                        +method run args {
+
+                            ## Commands to run are this, and the first parent one
+
+                            ## Run 
+                            #puts "Running pre command $args"
+
+                            set location [pwd]
+
+                            :apply ${:script}
+
+                            ## Look for first module with a runnable of same name 
+                            #
+                            set searchName {$:name}
+                            #set foundParent [[:parent] findParentInPrimaryLine {puts "[$it name get] ::-> [$it shade ::odfi::Command findChildByProperty name $searchName]" ; return false}]
+                            set foundParent [[:parent] findParentInPrimaryLine "return \[\$it shade ::odfi::Command findChildByProperty name ${:name}\]"]
+                            if {$foundParent==""} {
+                                :log:warning "Precommand ${:name} cannot find a command with same name in parents, maybe command is just enough"
+                            } else {
+
+                                set parentCommand [$foundParent shade ::odfi::Runnable findChildByProperty name ${:name}]
+                                
+                                ##puts "Running parent "
+                                set startCommand [current object]
+                                $parentCommand run [join $args]
+                            }
+                        }
+
                     }
                     
                     :tool : Runnable name {
@@ -535,12 +651,20 @@ namespace eval odfi {
             +method gatherModules args {
                 
                 
+                #set allConfigInstallPaths [[:children] @> map { return [$it installPath get]}]
+
                 set postGatherList {}
                 :shade ::odfi::Config eachChild {
                     
                     set searchPath [$it installPath get]
+                    set currentConfig $it
+                    set currentConfigIPath [$currentConfig installPath get]
+
                     
-                    #puts "Starting Search in $searchPath"
+
+
+                    
+                    #puts "Starting Search in $searchPath, with other paths [$allConfigInstallPaths mkString ,]"
                     
                     ## Look for all folders with an odfi config
                     set nextDirectories [list [list $it [glob -nocomplain -type d -directory $searchPath *]]]
@@ -556,6 +680,15 @@ namespace eval odfi {
                         
                         foreach currentDir $currentDirs {
   
+                            ## Ignore Current Dir if it belongs to another config
+                            #if {[$allConfigInstallPaths @> findOption { if {$it != $currentConfigIPath && [string match ${it}* $currentDir]} {return true} else {return false} } @> isDefined]} {
+
+                                ## It is only true if the target Config 
+                             #   puts "$currentDir belongs to another config"
+                             #   continue
+
+                            #}
+
                             ## Look for module files in directory
                             ## If none, add to next search loop if not a module looking folder
                             set moduleFiles [glob -nocomplain -type f -directory $currentDir *.module.tcl]
@@ -626,7 +759,10 @@ namespace eval odfi {
                 ## Post Gather
                 :loadIndexScripts
                 foreach element $postGatherList {
-                    $element callPostBuild
+                    if {[catch {$element callPostBuild} res]} {
+                        :log:warning "Error during post build of [$element getFullName] : $res"
+                        error $res 
+                    }
                 }
                 
             }
@@ -637,13 +773,19 @@ namespace eval odfi {
                 if {$modulePath==""} {
                     return [::odfi::flist::MutableList new]
                 }
+
+                ## Split at / if necessary
+                ##########
+                set originalModulePath $modulePath
+                if {[string match "*/*" $modulePath]} {
+                    set modulePath [split $modulePath /]
+                }
                 
-                :log:raw "Searching for module: $modulePath..."
+                :log:raw "Searching for module ([llength $modulePath]): $modulePath..."
                 
                 ## Sort Module Path
                 ##########
-                set originalModulePath $modulePath
-                set modulePath [split $modulePath /]
+                #set modulePath [split $modulePath /]
                 set targetConfig ""
                 set targetConfigObject ""
                 
@@ -690,7 +832,7 @@ namespace eval odfi {
                 $searchConfigs foreach {
                     {config i } =>
                         
-                        #puts "Search COnfig at $currentSearchPath"
+                        #puts "Search Config [$config name get]"
                         
                         set currentNode $config
                         set searchModulePath $modulePath
@@ -700,13 +842,14 @@ namespace eval odfi {
                             set currentSearchPath [lindex $searchModulePath 0]
                             set searchModulePath [lreplace $searchModulePath 0 0]
                             
-                           # puts "Looking at $currentSearchPath -> [::odfi::Version::isVersion $currentSearchPath]"
+                            #puts "Looking at $currentSearchPath -> version=[::odfi::Version::isVersion $currentSearchPath]"
                             
                             
                             ## Search cases:
                             ## a) last path and If Current search is a version, look for a child Module with the correct version
-                            ## b) last path search for a module in the bottom Group tree 
-                            ## Otherwise Look in current node for child with correct name
+                            ## b) b.1) if not matched...last path search for a module in the bottom Group tree 
+                            ##    b.2) Otherwise Look in current node for child with correct name
+                            set foundChild ""
                             if {[llength $searchModulePath]==0 && [::odfi::Version::isVersion $currentSearchPath]} {
                                 
                                 set foundChildRes [[$currentNode shade ::odfi::Module children] findOption { 
@@ -724,7 +867,9 @@ namespace eval odfi {
                                 }
                                
                                 
-                            } else {
+                            } 
+
+                            if {$foundChild==""} {
                             
                             
                                 ## Search in current children with Subtree if it is the last path, otherwise normal search
@@ -741,13 +886,8 @@ namespace eval odfi {
                                         }
                                     }]
                                 } else {
-                                    set foundChild [$currentNode findChildByProperty name $currentSearchPath]
+                                    set foundChild [$currentNode shade { expr {[$it isClass ::odfi::Module] || [$it isClass ::odfi::Group]} } findChildByProperty name $currentSearchPath]
                                 }
-                               
-                                
-                                
-                                
-                            
                                 
                             }
                            
@@ -766,7 +906,7 @@ namespace eval odfi {
                                 ## Current node
                                 set currentNode $foundChild
                                 
-                                #puts "Found [$currentNode info class] for $currentSearchPath"
+                               # puts "Found [$currentNode info class] for $currentSearchPath"
                                 
                                 ## If end and Module, found
                                 if {[llength $searchModulePath]==0 && [$currentNode isClass ::odfi::Module]} {
@@ -815,10 +955,14 @@ namespace eval odfi {
                     
                     ## File Command
                     ##################
-                    set commandFile [file normalize $mainCommand]
+                    set foundCommand [::odfi::filecommand $mainCommand]
+                    $foundCommand addParent [current object]
+                    return $foundCommand
+
+                    #set commandFile [file normalize $mainCommand]
                     
                 
-                    return [:resolveCommand odfi/tcl]
+                    #return [:resolveCommand odfi/tcl]
                     #:runCommand odfi/tcl $commandFile
                     
                 } else {
@@ -911,14 +1055,14 @@ namespace eval odfi {
                         ## FIXME Use version to get the correct one and run the command
                         set module [$foundModules at 0]
                         if {$module==""} {
-                            ::odfi::log::error "Could not find module $modulePath for command $originalCommand"
+                            ::odfi::log::error "Could not find module $moduleSearchParth for command $originalCommand"
                             return ""
                         } else {
                         
                             ## Look for Command
-                            set commandObject [$module shade ::odfi::Command findChildByProperty name $command]
+                            set commandObject [$module shade ::odfi::Runnable findChildByProperty name $command]
                             if {$commandObject == ""} {
-                                ::odfi::log::debug "Could not find command $command in module $modulePath for $originalCommand"
+                                ::odfi::log::debug "Could not find command $command in module $moduleSearchParth for $originalCommand"
                                 return ""
                             } else {
                                 

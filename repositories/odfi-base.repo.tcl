@@ -96,5 +96,108 @@
 
     
 
+    ## Scala Libraries
+    ##############
+
+    :group scala {
+
+
+        :group utils {
+            :module tea {
+                :version master {
+                    :location any any git@github.com:richnou/tea.git 
+                }
+            }
+        }
+
+        
+
+        :group wsb {
+            :module core {
+
+                :version master {
+                    :location any any git@github.com:richnou/wsb-core.git 
+                }
+
+            }
+
+            :module webapp {
+
+                :version master {
+                    :location any any git@github.com:richnou/wsb-webapp.git 
+                }
+
+            }
+        }
+            
+        
+
+        :group gui {
+
+            :group vui2 {
+                :module core {
+
+                    :version master {
+                        :location any any git@github.com:richnou/vui2.git 
+                    }
+                }
+            }
+
+            :group vui {
+                
+                #:attribute odfi deprecated true
+
+                :module core {
+
+                    :version master {
+                        :location any any git@github.com:richnou/virtualui-core.git 
+                    }
+
+                }
+
+                :module javafx {
+                   
+                    :version master {
+
+                        :location any any git@github.com:richnou/virtualui-javafx.git  
+
+                    }
+                }
+                
+            }
+
+            
+
+        }
+
+        :group xml {
+
+
+            :group ooxoo {
+
+                :module core {
+
+                    :version master {
+
+                        :location any any git@github.com:richnou/ooxoo-core.git  
+
+                    }
+                }
+            }
+        }
+    }
+
+    ## Indesign
+    ######################
+    :group indesign {
+
+        :module core {
+            :version master {
+                :location any any git@github.com:richnou/indesign.git 
+            }
+        }
+
+    }
+
 
 }

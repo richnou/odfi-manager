@@ -1,5 +1,7 @@
 package provide odfi::repo 3.0.0
 package require odfi       3.0.0
+
+
 namespace eval ::odfi::repo {
 
     odfi::language::nx::new [namespace current] {
@@ -191,6 +193,19 @@ namespace eval ::odfi::repo {
             :module : ::odfi::Module name {
                 +exportTo Group
                 
+                +method getFullName args {
+
+                    return [:shade { if {[$it isClass ::odfi::Module] ||  [$it isClass ::odfi::repo::Group]  ||  [$it isClass ::odfi::Config] ||  [$it isClass ::odfi::repo::Repository]} { return true} else {return false} } formatHierarchyString {
+                        if {[$it isClass ::odfi::Config]} {
+                            return "@[$it name get]"
+                        } else {
+                            return "[$it name get]"
+                        }
+                    } /]/[:name get]
+
+                }
+
+
                 :access name url {
                 
                 }

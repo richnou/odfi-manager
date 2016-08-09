@@ -1,7 +1,7 @@
 ## This file contains TCL configuration of available ODFI modules
 
 ## Installation paths
-:installPath set [file normalize [file dirname [info script]]]/install
+:installPath set [file normalize [file dirname [info script]]/../install/main]
 
 
 ## Main ODFI Module
