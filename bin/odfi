@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+#!/usr/bin/env tclsh86
 
 
 
@@ -87,6 +87,14 @@ set asciiLogo {
   ╚═════╝ ╚═════╝ ╚═╝     ╚═╝  
 }
 
+set asciiLogo {
+ _______ ______  _______ _ 
+(_______|______)(_______) |
+ _     _ _     _ _____  | |
+| |   | | |   | |  ___) | |
+| |___| | |__/ /| |     | |
+ \_____/|_____/ |_|     |_|
+}
 
 
 ## Version and stat
@@ -96,6 +104,10 @@ consumeArgument -info {
     puts "ODFI Version: $version"
     puts "TCL Version: [info tclversion]"
 
+}
+set verbose false
+consumeArgument -v {
+    set verbose true
 }
 
 ## Load Private Dependencies
@@ -111,27 +123,111 @@ set managerHome [file normalize [file dirname [info script]]/../]
 #    puts "Using "
 #}
 
-set dependencies {
+## Dev TCL Checks
+###########
 
-    odfi::closures 3.0.0 https://github.com/unihd-cag/odfi-dev-tcl.git odfi-dev-tcl tcl/pkgIndex.tcl
+set privateDevTCLLocation $managerHome/private/odfi-dev-tcl
 
+if {[file exists $privateDevTCLLocation/tcl/pkgIndex.tcl]} {
+    source $privateDevTCLLocation/tcl/pkgIndex.tcl
+} else {
+    puts "Initialising TCL Devlib..."
+    exec git clonehttps://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation
+    source $privateDevTCLLocation/tcl/pkgIndex.tcl
 }
 
-foreach {p version sources outPath indexFile} $dependencies {
+
+## NSF Checks
+##############""
+if {[catch {package require nsf 2.0.0} res]} {
     
-    if {[catch {package require $p $version}]} {
-        if {![file exists $managerHome/private/$outPath] && [catch {puts [exec git clone $sources  $managerHome/private/$outPath]} res]} {
-            error "Could not load package $p , and cloning sources failed: $res"
-        }
-        source $managerHome/private/$outPath/$indexFile
+    ## Try to load local
+    ########
+    puts "Looking for NSF [string tolower $::tcl_platform(os)]"
+    if {[string match "*windows*" [string tolower $::tcl_platform(platform)]] && [string match "*msys64*" $::tcl_library]} {
+        
+        
+       
+        
+        puts "Can't load NSF, using local version for msys nt"
+        
+        set dir  $managerHome/private/nsf/nsf2.0.0-msys64
+        source   $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        
+    } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
+    
+        puts "Can't load NSF, using local version for windows"
+        set dir  $managerHome/private/nsf/nsf2.0.0-win64
+        source   $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        
+        package require nx 2.0.0
+        
+       
     }
+    
+} elseif {$verbose} {
+
+    puts "NSF loaded from system, use --privatensf to use local NSF"
 }
+
+if {[catch {package require Itcl} res]} {
+    
+    error "Cannot Load ITCL, no alternative for now"
+
+}
+
+
+#set dependencies {
+#
+##    odfi::closures 3.0.0 https://github.com/unihd-cag/odfi-dev-tcl.git odfi-dev-tcl tcl/pkgIndex.tcl
+#
+#}
+
+#foreach {p version sources outPath indexFile} $dependencies {
+#    
+##    if {[catch {package require $p $version}]} {
+ #       if {![file exists $managerHome/private/$outPath] && [catch {puts [exec git clone $sources  $managerHome/private/$outPath]} res]} {
+#            error "Could not load package $p , and cloning sources failed: $res"
+  #      }
+ #       source $managerHome/private/$outPath/$indexFile
+ #   }
+#}
 
 
 
 
 ## Load language definition
-source $managerHome/private/odfi.tm
+## In case of error, maybe update the private dependencies
+if {[catch {source $managerHome/private/odfi.tm} res]} {
+
+    puts "Error: $res"
+    if {[string match "*can't find package*" $res]} {
+    
+        puts "Some package ($res) seems to be missing while loading ODFI..."
+        
+        ## IF NSF is missing; try to load from local installation
+        #########
+        if {[string match "*package nsf*" $res]} {
+        
+            error "Could not find package NSF, this should have been checked earlier"
+            
+        } else {
+            puts "Trying to update the private dependency then retrying..."
+            
+            ## Pull
+            set cdir [pwd]
+            cd   $privateDecTCLLocation
+            catch {exec git pull}
+            cd $cdir
+            
+            ## Retry
+            source $managerHome/private/odfi.tm
+        }
+        
+        
+    
+    }
+}
 
 
 ## Create Default ODFI Instance
@@ -191,9 +287,10 @@ $odfi gatherModules
 ########
 
 ## don't put logo on windows
-if {![::odfi::os::isWindows]} {
+#if {[llength [array names ::env SHELL]] > 0} {
     puts $asciiLogo
-}
+#}
+
 
 
 ## Consume all arguments until first one is a non configuration argument

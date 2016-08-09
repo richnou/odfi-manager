@@ -110,10 +110,54 @@ namespace eval odfi {
                 return $modules
             }
             
+            ################################
             ## COnfig
-            ################
+            ################################
             
-            ## DSL
+            #### Remote Config
+            ###############
+            
+            +method remoteConfig {path args} {
+                
+                set scriptLocation [::odfi::common::findFileLocation]
+                #puts "Calling Remote Config from -> $scriptLocation"
+                
+                ## Create target file and another variable for save path, because the command line execution might differ from normal path
+                set targetFile [file normalize [file dirname [lindex $scriptLocation 0]]/[lindex [split $path /] end].sync]
+                set targetFileSavePath $targetFile
+                ## Handle
+                ## Rsync etc...
+                ##############
+                if {[string match "rsync://*" $path]} {
+                    
+                    ## Check RSYNC
+                    if {[::odfi::os::isCommandInPath rsync]} {                   
+                        :log:warning "Cannot request RSYNC Config file if the RSYNC command is not available" 
+                        return
+                    } 
+                    
+                    ## Running
+                    ###########
+                    set remoteFilePath [string range $path 8 end]
+                    
+                    ## Adapt Local Path if windows + msys. convert C:/x to /C/x
+                    if {[::odfi::os::isWindowsMsys]} {
+                        set targetFileSavePath "/[string map {: /} $targetFileSavePath]"
+                    }
+                    
+                    :log:raw "RSYNC Sync of $remoteFilePath to $targetFile"
+                    if {[catch {exec rsync -ubv $path $targetFileSavePath} res]} {
+                        :log:warning "Could not sync configuration: $res"
+                    } else {
+                        source $targetFile
+                    }
+                
+                }
+            }
+            
+            
+            #### DSL
+            ########
             :config : NameDescription configFile {
             
                 +var installPath ""
@@ -123,6 +167,9 @@ namespace eval odfi {
                 
                 ## ConfigFile can be a config file or just a name
                 +builder {
+                
+                    set scriptLocation [::odfi::common::findFileLocation]
+                    puts "Config created here: $scriptLocation"
                 
                     ## Config File: if there, preset name to file name and source
                     ## If not there the configFile is the name
