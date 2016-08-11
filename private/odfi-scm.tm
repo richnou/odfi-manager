@@ -32,6 +32,8 @@ namespace eval ::odfi::scm {
                 :log:setPrefix scm.git
             }
             
+            ## Abstract functions
+            #########
             +method accept module {
                 
                 if {[$module isPhysical] && [file exists [$module directory get]/.git]} {
@@ -52,6 +54,43 @@ namespace eval ::odfi::scm {
             
             +method isClean module {
                 return [::odfi::git::isClean [${module} directory get]]
+            }
+            
+            +method isBehind module {
+            
+                :fetch $module
+                
+                set currentBranch [odfi::git::current-branch [${module} directory get]]
+                
+                ## Look for current branch status in list
+                set gitStatus [::odfi::files::inDirectory [${module} directory get] {
+                
+                        catch {exec git status} res
+                        
+                        return $res
+                }]
+                
+               #puts "Fetch Status: $gitStatus"
+                
+                ## Get Actual Status result
+                if {[string match "*Your branch is behind*" $gitStatus]} {
+                    return true
+                } else {
+                    return false
+                }
+                #regexp  "(.+)\s+$currentBranch\s+->" $fetchStatus -> status
+                
+                
+                
+                return false
+            }
+            
+            ## Low level
+            +method fetch module {
+                ::odfi::files::inDirectory [${module} directory get] {
+                    catch {exec git fetch}
+                }
+                
             }
         
         }

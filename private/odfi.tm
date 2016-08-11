@@ -110,6 +110,47 @@ namespace eval odfi {
                 return $modules
             }
             
+            ## Execution on parent level
+            +method onAllPhysicalModules cl {
+            
+                [:getAllPhysicalModules] foreach $cl -level 2
+            }
+            
+            
+            ## On Selected Modules 
+            +method onModules {modulePath cl} {
+                
+                [:findModules $modulePath] isEmpty {
+                
+                    :log:warning "Cannot find any module for provided path $modulePath"
+                    
+                } elseOnList {
+                    
+                    ## Foreach and call on level 2 to go back to caller of onModules
+                    :foreach $cl -level 2
+                }
+            }
+            
+            ## On Selected One Module, falis if choice is not singular 
+            +method onModule {modulePath cl} {
+                
+                set found [:findModules $modulePath] 
+                
+                $found isEmpty {
+                
+                    :log:warning "Cannot find any module for provided path $modulePath"
+                    
+                } elseOnList {
+                    
+                    ## Foreach and call on level 2 to go back to caller of onModules
+                    if {[:size]>1} {
+                        uplevel log:warning "Module path $modulePath lead to more than one result, please make your choice more specific"
+                    } else {
+                        [:at 0] apply $cl
+                    }
+                }
+            }
+            
             ################################
             ## COnfig
             ################################
@@ -125,6 +166,15 @@ namespace eval odfi {
                 ## Create target file and another variable for save path, because the command line execution might differ from normal path
                 set targetFile [file normalize [file dirname [lindex $scriptLocation 0]]/[lindex [split $path /] end].sync]
                 set targetFileSavePath $targetFile
+                
+                ## Don't sychronise unless forced
+                ###########
+                if {[file exists $targetFile]} {
+                    source $targetFile
+                    return
+                }
+                
+                
                 ## Handle
                 ## Rsync etc...
                 ##############
@@ -435,7 +485,7 @@ namespace eval odfi {
                         +builder {
 
                             if {![:isRoot]} {
-                                :log:setPrefix [[:parent] name get].$name
+                                :log:setPrefix [[:parent] name get].${:name}
                             }
                             
                         }

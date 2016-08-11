@@ -1,6 +1,8 @@
 #!/usr/bin/env tclsh86
 
+puts "PS: $::env(PS1)"
 
+#return
 
 ## Puts override to handle adding comment marker to beginning of line
 set putsPrefix "#"
@@ -110,21 +112,18 @@ consumeArgument -v {
     set verbose true
 }
 
-## Load Private Dependencies
+## Bootstraping
 ##  - Use explicit sourcing here to avoid environment hack with normal installation
+##  - Find ODFI location
 #####################
 
-
+## Manager HOME
+##  - Here check the path and move to system installation if necessary
 set managerHome [file normalize [file dirname [info script]]/../]
 
-
-## If there is a main devtcl installation, use it instead of local one ?
-#if {[file exists $managerHome/install/main/tcl/devlib/master/tcl/pkgIndex.tcl]} {
-#    puts "Using "
-#}
-
+##
 ## Dev TCL Checks
-###########
+##
 
 set privateDevTCLLocation $managerHome/private/odfi-dev-tcl
 
@@ -132,31 +131,33 @@ if {[file exists $privateDevTCLLocation/tcl/pkgIndex.tcl]} {
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
 } else {
     puts "Initialising TCL Devlib..."
-    exec git clone https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation
+    catch {exec git clone https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation}
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
 }
 
 
+##
 ## NSF Checks
-##############""
+##
 if {[catch {package require nsf 2.0.0} res]} {
     
     ## Try to load local
     ########
-    puts "Looking for NSF [string tolower $::tcl_platform(os)]"
+    #puts "Looking for NSF [string tolower $::tcl_platform(os)]"
     if {[string match "*windows*" [string tolower $::tcl_platform(platform)]] && [string match "*msys64*" $::tcl_library]} {
         
         
        
         
-        puts "Can't load NSF, using local version for msys nt"
+       # puts "Can't load NSF, using local version for msys nt"
         
         set dir  $managerHome/private/nsf/nsf2.0.0-msys64
         source   $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
         
     } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
     
-        puts "Can't load NSF, using local version for windows"
+        #puts "Can't load NSF, using local version for windows"
+        
         set dir  $managerHome/private/nsf/nsf2.0.0-win64
         source   $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
@@ -198,36 +199,9 @@ if {[catch {package require Itcl} res]} {
 
 ## Load language definition
 ## In case of error, maybe update the private dependencies
-if {[catch {source $managerHome/private/odfi.tm} res]} {
+source $managerHome/private/odfi.tm
 
-    puts "Error: $res"
-    if {[string match "*can't find package*" $res]} {
-    
-        puts "Some package ($res) seems to be missing while loading ODFI..."
-        
-        ## IF NSF is missing; try to load from local installation
-        #########
-        if {[string match "*package nsf*" $res]} {
-        
-            error "Could not find package NSF, this should have been checked earlier"
-            
-        } else {
-            puts "Trying to update the private dependency then retrying..."
-            
-            ## Pull
-            set cdir [pwd]
-            cd   $privateDecTCLLocation
-            catch {exec git pull}
-            cd $cdir
-            
-            ## Retry
-            source $managerHome/private/odfi.tm
-        }
-        
-        
-    
-    }
-}
+
 
 
 ## Create Default ODFI Instance

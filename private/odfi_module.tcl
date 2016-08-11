@@ -132,42 +132,7 @@
     }
     
     
-    ## Update
-    ################
-    :command update {
     
-        :log:raw "Updating Modules..."
-        set cmd [current object]
-        
-        ## Get all SCM
-        set scms [[:getODFI] shade ::odfi::Config @> mapChildren { $it shade ::odfi::scm::SCM children} @> flatten]
-        
-        :log:raw "SCM Support found: [$scms @> map {$it type get} mkString ,]"
-    
-        [:getODFI] shade { if {[string match ::odfi::Module [$it info class]] && [$it isPhysical]} { return true} else {return false} } walkDepthFirstPreorder {
-            
-            {module parent} => 
-                
-                $cmd log:raw "======================================================"
-                $cmd log:raw "Updating [$module name get] in [$module directory get]"
-                
-                $scms @> findOption { $it accept $module} @> match {
-                
-                    :some scm {
-                        #$cmd log:raw "Found SCM [$scm type get]"
-                        $scm update $module
-                    }
-                    
-                    :none {
-                    
-                        $cmd log:raw "Module is not under a revision mechanism which supports updates"
-                    }
-                }
-               
-            
-        
-        }
-    }
     
     ## SCM
     ###############
@@ -310,5 +275,8 @@
 
     ## Load Gui Command
     ###############
-    source [file dirname [info script]]/gui/odfi_module_guicommand.tcl
+    foreach f [glob -nocomplain -type f -directory [file dirname [info script]]/commands/ *.tcl] {
+        source $f
+    }
+    
 }
