@@ -44,6 +44,11 @@
         }
         
         ## Make Sure NX can be found
+        if {![catch {set ::nxLocalPath}]} {
+            puts "Loading local NX -> ${::nxLocalPath}"
+            $runInterpreter eval [list set dir [file dirname ${::nxLocalPath}]]
+            $runInterpreter eval [list source ${::nxLocalPath}]
+        }
         #if {${::nxLocalPath}!=""} {
         #    #puts "Loading local NX -> ${::nxLocalPath}"
         #    $runInterpreter eval [list set dir [file dirname ${::nxLocalPath}]]
