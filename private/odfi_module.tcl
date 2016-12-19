@@ -5,6 +5,10 @@
     #############
     :command info {
         puts "TCL Version: [info tclversion]"
+        
+        ${:commandResult} puts "Result of info command"
+        ${:commandResult} add tclversion [info tclversion]
+        
     }
     
     :command modules {
@@ -133,45 +137,6 @@
     
     
     
-    
-    ## SCM
-    ###############
-    :module scm {
-    
-        :command isClean {
-        
-            :log:raw "Checking clean status..."
-            set cmd [current object]
-            
-            ## Get all SCM
-            set scms [[:getODFI] shade ::odfi::Config @> mapChildren { $it shade ::odfi::scm::SCM children} @> flatten]
-            
-            [:getODFI] shade { if {[string match ::odfi::Module [$it info class]] && [$it isPhysical]} { return true} else {return false}  } walkDepthFirstPreorder {
-                       
-               {module parent} => 
-                   
-                   $scms @> findOption { $it accept $module} @> match {
-                                   
-                       :some scm {
-                           #$cmd log:raw "Found SCM [$scm type get]"
-                           if {[$scm isClean $module]} {
-                                $cmd log:raw "Module [$module name get]...clean"
-                           } else {
-                                $cmd log:raw "Module [$module name get]...not clean ([$module directory get])"
-                           }
-                       }
-                       
-                       :none {
-                       
-                           $cmd log:raw "Module [$module name get] is not under a revision mechanism which supports updates"
-                       }
-                   }
-                    
-                   
-            }
-        }
-    }
-    
     ## FileCommands Support
     ####################
     
@@ -195,75 +160,7 @@
         
     }
     
-    :fileCommandHandler tcl {
-        
-        :log:setPrefix odfi.FCH.TCL
-        
-        :onAccept {
-        
-            if {[$cmd isTCL]} {
-                return true
-            } else {
-                return false
-            }
-            
-        }
-        
-        :onRun {
-        
-            ## Create Environment
-            set runEnv [[:getODFI] env:environment]
-            
-            ## Create Interpreter
-            set runInterpreter [interp create]
-            
-            ## Source prescripts
-            #puts "Prescripts: [[$runEnv shade ::odfi::environment::PreScript firstChild]  path get]"
-            [$runEnv shade ::odfi::environment::PreScript children] @> filter { return [string match "*.tcl" [$it path get]] } @> foreach {
-                #puts "Sourcing prescript [$it path get]" 
-                $runInterpreter eval [list source [$it path get]]
-            }
-            
-            ## Source script in interpreter then delete
-            try {
-                
-                $runInterpreter eval [list set argv [join [lrange $args 1 end]]]
-                $runInterpreter eval [list source [$cmd path get]]
-            
-            } finally {
-                interp delete $runInterpreter
-            }
-        }
-        
-    }
     
-    :command tcl {
-    
-        puts "Running TCL File: $args"
-        
-        ## Create Environment
-        set runEnv [[:getODFI] env:environment]
-        
-        ## Create Interpreter
-        set runInterpreter [interp create]
-        
-        ## Source prescripts
-        #puts "Prescripts: [[$runEnv shade ::odfi::environment::PreScript firstChild]  path get]"
-        [$runEnv shade ::odfi::environment::PreScript children] @> filter { return [string match "*.tcl" [$it path get]] } @> foreach {
-            #puts "Sourcing prescript"
-            $runInterpreter eval [list source [$it path get]]
-        }
-        
-        ## Source script in interpreter then delete
-        try {
-        
-            $runInterpreter eval [list source $args]
-        
-        } finally {
-            interp delete $runInterpreter
-        }
-        
-    }
     
     
     

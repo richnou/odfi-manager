@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh86
 
-puts "PS: $::env(PS1)"
+#puts "PS: $::env(PS1)"
 
 #return
 
@@ -121,6 +121,8 @@ consumeArgument -v {
 ##  - Here check the path and move to system installation if necessary
 set managerHome [file normalize [file dirname [info script]]/../]
 
+set nxLocalPath ""
+
 ##
 ## Dev TCL Checks
 ##
@@ -149,10 +151,12 @@ if {[catch {package require nsf 2.0.0} res]} {
         
        
         
-       # puts "Can't load NSF, using local version for msys nt"
+       puts "Can't load NSF, using local version for msys nt"
         
         set dir  $managerHome/private/nsf/nsf2.0.0-msys64
         source   $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        
+        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
         
     } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
     
@@ -161,7 +165,9 @@ if {[catch {package require nsf 2.0.0} res]} {
         set dir  $managerHome/private/nsf/nsf2.0.0-win64
         source   $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
-        package require nx 2.0.0
+        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        
+   
         
        
     }
@@ -194,7 +200,9 @@ if {[catch {package require Itcl} res]} {
  #   }
 #}
 
+### EOF Bootstraping ##################
 
+package require odfi::errortracer 1.0.0
 
 
 ## Load language definition
@@ -232,12 +240,12 @@ foreach confFile [glob -nocomplain $managerHome/configs/*.config.tcl] {
 
 
 ## Load all the repostiory descriptions
-foreach repoFile [glob -nocomplain $managerHome/repositories/*.repo.tcl] {
+#foreach repoFile [glob -nocomplain $managerHome/repositories/*.repo.tcl] {
     #$odfi config $confFile
-    $defaultConfig apply  {
-        source $repoFile
-    }
-}
+#    $defaultConfig apply  {
+#        source $repoFile
+#    }
+#}
 
 
 #### User config ####
@@ -245,8 +253,10 @@ set userConfig [$odfi config user {
 
     :installPath set ${::env(HOME)}/.odfi/install
     
-    foreach userConfigFile [global -nocomplain -directory $::env(HOME)/.odfi/ *.module.tcl] {
-        source $userConfigFile
+    foreach userConfigFile [global -nocomplain -directory $::env(HOME)/.odfi/ *.config.tcl] {
+        $odfi apply  {
+            source $userConfigFile
+        }
     }
     
 }]
@@ -294,19 +304,53 @@ proc splitToString {lst splitStr} {
 set commands [splitToString $::argv "--"]
 #puts "CMDS: $commands"
 #exit
-foreach cmd $commands {
 
+proc specialJoin args {
+    
+    puts "Specia Join: $args [llength $args]"
+    if {$args=="{}"} {
+        puts "return empty"
+        return ""
+    } else {
+        return [join $args]
+    }
+    ##puts "Specia Join: $args [llength $args]"
+}
 
+## Runnin the commands
+try {
 
-    set cmd [string trim $cmd]
-    if {$cmd!=""} {
-        set mainCommand [lindex $cmd 0]
-        $odfi runCommand $mainCommand [lrange $cmd 1 end]
+   
+    
+    foreach cmd $commands {
+    
+    
+    
+        set cmd [string trim $cmd]
+        if {$cmd!=""} {
+            set mainCommand [lindex $cmd 0]
+            
+           # puts "Command args: [lrange $cmd 1 end] [llength [lrange $cmd 1 end]] - [specialJoin [lrange $cmd 1 end]]"
+            $odfi runCommand $mainCommand [join [lrange $cmd 1 end]]
+        }
+    
+        
+    
+        #puts "Command: $cmd"
     }
 
+}  on error {res option} {
     
-
-    #puts "Command: $cmd"
+        set stack [dict get $option -errorinfo]
+        puts $stack
+        
+        
+        return
+        set output_list [odfi::errortrace::errorToList $res $option]
+        odfi::errortrace::printErrorList $output_list
+        
+        #odfi::errortrace::printErrorListReverse $output_list
+        #puts "Object call: [$a info class]"        
 }
 
 exit 0

@@ -36,7 +36,9 @@ namespace eval ::odfi::scm {
             #########
             +method accept module {
                 
+               # puts "GIT accept: $module? [$module isPhysical] && [file exists [$module directory get]/.git]"
                 if {[$module isPhysical] && [file exists [$module directory get]/.git]} {
+                    #puts "Accept"
                     return true
                 } else {
                     return false
@@ -50,6 +52,22 @@ namespace eval ::odfi::scm {
                     #:log:warning "$res"
                 }
             
+            }
+            
+            +method getStatus module {
+                
+                return [::odfi::files::inDirectory [${module} directory get] {
+                                
+                        catch {exec git status} res
+                        
+                        return $res
+                }]
+            }
+            
+            +method printStatus module {
+            
+                puts [:getStatus $module]
+                
             }
             
             +method isClean module {

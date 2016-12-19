@@ -6,12 +6,12 @@ set guiCommand [:command "gui" {
    
     :log:raw "Starting GUI Command using EWWW Framework"
 
-    set command [current object]
+    set c [current object]
     set server [::odfi::ewww::server 8685 {
 
         :application odfi /odfi {
 
-            :htmlViewTemplate base [$command templatesFolder get]/odfi-gui-base.tcl
+            :htmlViewTemplate base [${c} templatesFolder get]/odfi-gui-base.tcl
 
             :htmlView index / {
                 set template [:getTemplate base]
@@ -26,7 +26,7 @@ set guiCommand [:command "gui" {
 
     }]
 
-
+    :log:raw "Webapp ready...."
     [:getODFI] addChild $server
 
     $server start
@@ -42,7 +42,9 @@ $guiCommand object variable -accessor public filesFolder     [file dirname [info
 :command "vwait" {
 
     :log:raw "Waiting on ::forever for event listener loop"
+    ${:commandResult} setState waiting
     vwait ::forever
+    :log:raw "Finished vwait"
 
 }
 
