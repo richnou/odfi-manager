@@ -1334,15 +1334,16 @@ namespace eval odfi {
 
                             :log:debug "Building Environment and looking for $command in a PATH"
                             set rEnv [:env:environment]
+                            $rEnv buildFromModules
                             set odfi [current object]
                             [$rEnv shade ::odfi::environment::Variable findChildrenByProperty name PATH] @> foreach {
 
-                                uplevel [list :log:debug "Testing in [$it value get]"]
+                                uplevel [list :log:debug "Testing in [$it value get] " ]
 
                                 if {[file exists [$it value get]/$command]} {
 
                                     ## Create FileCommand
-                                    uplevel [list :log:debug "Found $command in [$it value get]"]
+                                    uplevel [list :log:debug "Found $command in [$it value get] " ]
 
 
                                     set foundCommand [::odfi::filecommand [$it value get]/$command]
