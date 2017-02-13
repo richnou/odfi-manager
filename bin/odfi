@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.6
+#!/usr/bin/env tclsh86
 
 #puts "PS: $::env(PS1)"
 
