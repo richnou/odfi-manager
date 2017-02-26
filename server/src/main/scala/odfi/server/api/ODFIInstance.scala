@@ -2,13 +2,13 @@ package odfi.server.api
 
 import java.io.File
 
-import edu.kit.ipe.adl.indesign.core.harvest.HarvestedResource
-import edu.kit.ipe.adl.indesign.tcl.flextree.FlexNode
-import edu.kit.ipe.adl.indesign.tcl.flist.MutableList
-import edu.kit.ipe.adl.indesign.tcl.module.TCLModule
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
+import org.odfi.indesign.core.harvest.HarvestedResource
+import org.odfi.tcl.flextree.FlexNode
+import org.odfi.tcl.flist.MutableList
+import org.odfi.tcl.module.TCLModule
+import org.odfi.tcl.nx.NXObject
 import com.idyria.osi.tea.thread.ThreadLanguage
-import edu.kit.ipe.adl.indesign.core.heart.HeartTask
+import org.odfi.indesign.core.heart.HeartTask
 
 class ODFIInstance(obj: NXObject) extends NXObject(obj) with NamedDescription with HarvestedResource with ThreadLanguage {
 

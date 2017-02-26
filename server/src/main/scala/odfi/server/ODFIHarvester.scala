@@ -1,17 +1,17 @@
 package odfi.server
 
 import java.io.File
-import edu.kit.ipe.adl.indesign.core.harvest.fs.HarvestedFile
+import org.odfi.indesign.core.harvest.fs.HarvestedFile
 import java.nio.file.Path
-import edu.kit.ipe.adl.indesign.core.harvest.fs.FileSystemHarvester
+import org.odfi.indesign.core.harvest.fs.FileSystemHarvester
 
-import edu.kit.ipe.adl.indesign.tcl.module.TCLPackageHarvester
+import org.odfi.tcl.module.TCLPackageHarvester
 import org.bridj.BridJ
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
-import edu.kit.ipe.adl.indesign.tcl.integration.TclObject
-import edu.kit.ipe.adl.indesign.tcl.TclInterpreter
-import edu.kit.ipe.adl.indesign.tcl.module.TCLModule
-import edu.kit.ipe.adl.indesign.tcl.flextree.FlexNode
+import org.odfi.tcl.nx.NXObject
+import org.odfi.tcl.integration.TclObject
+import org.odfi.tcl.TclInterpreter
+import org.odfi.tcl.module.TCLModule
+import org.odfi.tcl.flextree.FlexNode
 import odfi.server.api.ODFIInstance
 
 object ODFIHarvester extends FileSystemHarvester {

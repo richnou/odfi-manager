@@ -1,8 +1,8 @@
 package odfi.server.api
 
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
-import edu.kit.ipe.adl.indesign.tcl.flextree.FlexNode
-import edu.kit.ipe.adl.indesign.core.harvest.HarvestedResource
+import org.odfi.tcl.nx.NXObject
+import org.odfi.tcl.flextree.FlexNode
+import org.odfi.indesign.core.harvest.HarvestedResource
 
 trait NamedDescription extends NXObject with FlexNode with HarvestedResource {
  

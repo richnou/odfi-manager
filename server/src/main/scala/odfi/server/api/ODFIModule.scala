@@ -1,8 +1,8 @@
 package odfi.server.api
 
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
-import edu.kit.ipe.adl.indesign.tcl.flextree.FlexNode
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObjectCacheFactory
+import org.odfi.tcl.nx.NXObject
+import org.odfi.tcl.flextree.FlexNode
+import org.odfi.tcl.nx.NXObjectCacheFactory
 
 class ODFIModule(val odfi: ODFIInstance,base:NXObject)  extends NXObject(base) with NamedDescription {
   deriveFrom(odfi)

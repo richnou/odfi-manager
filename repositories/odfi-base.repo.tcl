@@ -2,6 +2,18 @@
     
     :location set [file normalize [info script]]
 
+    :group indesign {
+
+        :module ide {
+
+            :groupId    org.odfi.indesign.ide
+            :artifactId indesign-ide-core
+
+
+        }
+
+    }
+
     :group tcl {
     
         :module devlib {

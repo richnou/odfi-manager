@@ -1,26 +1,35 @@
 package odfi.server.manager.ui
 
-import edu.kit.ipe.adl.indesign.core.module.ui.www.IndesignUIView
-import edu.kit.ipe.adl.indesign.core.module.ui.www.external.SemanticUIView
+
 import odfi.server.ODFIInstallation
 import odfi.server.ODFIHarvester
 import odfi.server.ODFIIDModule
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallationHarvester
-import edu.kit.ipe.adl.indesign.core.module.process.IDProcess
-import edu.kit.ipe.adl.indesign.core.module.process.IDCommand
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallation
-import edu.kit.ipe.adl.indesign.tcl.module.TCLModule
+import org.odfi.tcl.module.interpreter.TCLInstallationHarvester
+import org.odfi.indesign.core.module.process.IDProcess
+import org.odfi.indesign.core.module.process.IDCommand
+import org.odfi.tcl.module.interpreter.TCLInstallation
+import org.odfi.tcl.module.TCLModule
 import java.io.File
 import odfi.server.api.ODFIInstance
 import odfi.server.api.ODFICommand
+import org.odfi.wsb.fwapp.framework.FWAppTempBufferView
+import org.odfi.wsb.fwapp.module.semantic.SemanticView
 
-trait ODFIBaseUI extends IndesignUIView with SemanticUIView  {
+trait ODFIBaseUI extends SemanticView with FWAppTempBufferView  {
+  
+  def pageContent(cl: => Any) = {
+    this.definePart("page-content") {
+      div {
+        cl
+      }
+    }
+  }
   
    this.viewContent {
     html {
       head {
 
-        stylesheet(createSpecialPath("resources", "/odfi.css")) {
+        stylesheet(createAssetsResolverURI("/odfi/css/odfi.css")) {
 
         }
       }
@@ -32,7 +41,7 @@ trait ODFIBaseUI extends IndesignUIView with SemanticUIView  {
           //---------------
           "ui header" :: h1("") {
 
-            image(createSpecialPath("resources", "/logo-main-96.png")) {
+            image(createAssetsResolverURI("/odfi/logos/logo-main-96.png")) {
             }
             "content" :: div {
               textContent("ODFI")

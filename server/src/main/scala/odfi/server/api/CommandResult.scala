@@ -1,7 +1,7 @@
 package odfi.server.api
 
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
-import edu.kit.ipe.adl.indesign.tcl.flextree.FlexNode
+import org.odfi.tcl.nx.NXObject
+import org.odfi.tcl.flextree.FlexNode
 
 /**
  * Command Result should not live longer than command run, because command process/interepreter are cleaned right after usage

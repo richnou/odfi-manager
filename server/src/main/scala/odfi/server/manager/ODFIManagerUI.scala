@@ -1,30 +1,30 @@
 package odfi.server.manager
 
-import edu.kit.ipe.adl.indesign.core.module.ui.www.IndesignUIView
-import com.idyria.osi.vui.html.lib.semanticui.SemanticUIBuilder
-import edu.kit.ipe.adl.indesign.core.module.ui.www.external.SemanticUIView
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallationHarvester
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallation
+
+import org.odfi.tcl.module.interpreter.TCLInstallationHarvester
+import org.odfi.tcl.module.interpreter.TCLInstallation
 import odfi.server.ODFIHarvester
 import odfi.server.ODFIInstallation
 import odfi.server.ODFIInstallation
 import odfi.server.ODFIIDModule
 import java.io.File
-import edu.kit.ipe.adl.indesign.core.module.process.IDCommand
-import edu.kit.ipe.adl.indesign.core.module.process.IDProcess
+import org.odfi.indesign.core.module.process.IDCommand
+import org.odfi.indesign.core.module.process.IDProcess
 import odfi.server.api.ODFIInstance
 import odfi.server.api.ODFICommand
-import edu.kit.ipe.adl.indesign.tcl.module.TCLModule
+import org.odfi.tcl.module.TCLModule
+import org.odfi.wsb.fwapp.module.semantic.SemanticView
+import org.odfi.wsb.fwapp.framework.FWAppFrameworkView
+import org.odfi.wsb.fwapp.framework.FWAppTempBufferView
 
-class ODFIManagerUI extends IndesignUIView with SemanticUIView {
-  this.root
-  this.changeTargetViewPath("/odfi")
+class ODFIManagerUI extends SemanticView with FWAppTempBufferView {
+  
 
   this.viewContent {
     html {
       head {
 
-        stylesheet(createSpecialPath("resources", "/odfi.css")) {
+        stylesheet(createAssetsResolverURI("/odfi/css/odfi.css")) {
 
         }
       }
@@ -36,7 +36,7 @@ class ODFIManagerUI extends IndesignUIView with SemanticUIView {
           //---------------
           "ui header" :: h1("") {
 
-            image(createSpecialPath("resources", "/logo-main-96.png")) {
+            image(createAssetsResolverURI("/odfi/logo-main-96.png")) {
             }
             "content" :: div {
               textContent("ODFI")

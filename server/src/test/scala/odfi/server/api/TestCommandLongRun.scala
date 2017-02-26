@@ -1,13 +1,13 @@
 package odfi.server.api
 
-import edu.kit.ipe.adl.indesign.core.harvest.fs.HarvestedFile
+import org.odfi.indesign.core.harvest.fs.HarvestedFile
 import odfi.server.ODFIHarvester
 import odfi.server.ODFIIDModule
-import edu.kit.ipe.adl.indesign.core.main.IndesignPlatorm
+import org.odfi.indesign.core.main.IndesignPlatorm
 import java.io.File
 import odfi.server.ODFIInstallation
 import com.idyria.osi.tea.thread.ThreadLanguage
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallationHarvester
+import org.odfi.tcl.module.interpreter.TCLInstallationHarvester
 
 object TestCommandLongRun extends App with ThreadLanguage {
 

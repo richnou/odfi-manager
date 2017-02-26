@@ -5,17 +5,17 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-import odfi.server.manager.ui.ODFIBaseUI
+
 import java.time.Instant
 import odfi.server.ODFIInstallation
 import odfi.server.ODFIInstallation
 import odfi.server.ODFIHarvester
 import odfi.server.api.ODFIInstance
-import edu.kit.ipe.adl.indesign.core.module.ui.www.stream.StreamUIBuilder
-import edu.kit.ipe.adl.indesign.core.config.Config
+
+import org.odfi.indesign.core.config.Config
 import com.idyria.osi.ooxoo.core.buffers.datatypes.DateTimeBuffer
 import java.net.URI
-
+/*
 class RunFileView extends ODFIBaseUI with StreamUIBuilder {
 
   this.definePart("page-content") {
@@ -194,4 +194,4 @@ class RunFileView extends ODFIBaseUI with StreamUIBuilder {
     }
   }
 
-}
+}*/

@@ -1,22 +1,20 @@
 package odfi.server.manager.ui
 
-import edu.kit.ipe.adl.indesign.core.module.ui.www.IndesignUIView
+
 import odfi.server.ODFIInstallation
 import odfi.server.ODFIHarvester
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallationHarvester
-import edu.kit.ipe.adl.indesign.tcl.module.interpreter.TCLInstallation
-import edu.kit.ipe.adl.indesign.tcl.module.TCLModule
+import org.odfi.tcl.module.interpreter.TCLInstallationHarvester
+import org.odfi.tcl.module.interpreter.TCLInstallation
+import org.odfi.tcl.module.TCLModule
 import odfi.server.manager.win.WinKey
-import edu.kit.ipe.adl.indesign.core.brain.Brain
-import edu.kit.ipe.adl.indesign.core.module.eclipse.EclipseModule
-import edu.kit.ipe.adl.indesign.core.module.eclipse.EclipseWorkspaceHarvester
-import edu.kit.ipe.adl.indesign.core.module.eclipse.EclipseWorkspaceFolder
+import org.odfi.indesign.core.brain.Brain
+
 
 class SetupUI extends ODFIBaseUI {
 
-  this.changeTargetViewPath("/odfi/setup")
+ 
 
-  this.definePart("page-content") {
+  this.pageContent {
 
     div {
 
@@ -137,7 +135,7 @@ class SetupUI extends ODFIBaseUI {
 
       // EClipse WS?
       //-------------------
-      Brain.withResource(EclipseModule) {
+     /* Brain.withResource(EclipseModule) {
         "ui segment" :: div {
           importHTML(<a class="ui right blue ribbon label">Eclipse</a>)
           div {
@@ -153,7 +151,7 @@ class SetupUI extends ODFIBaseUI {
             }
           }
         }
-      }
+      }*/
 
     }
 

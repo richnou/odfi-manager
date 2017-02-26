@@ -9,12 +9,8 @@ import java.awt.event.ActionListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
-import com.idyria.osi.vui.implementation.javafx.JavaFXRun
-import com.idyria.osi.vui.implementation.javafx.JavaFXUtilsTrait
-import com.idyria.osi.vui.implementation.swing.SwingUtilsTrait
-
-import edu.kit.ipe.adl.indesign.core.brain.Brain
-import edu.kit.ipe.adl.indesign.core.main.IndesignPlatorm
+import org.odfi.indesign.core.brain.Brain
+import org.odfi.indesign.core.main.IndesignPlatorm
 import javafx.application.HostServices
 import javafx.scene.control.Alert
 import javafx.scene.control.Alert.AlertType
@@ -32,21 +28,30 @@ import javax.swing.UIManager
 import javafx.application.Application
 import com.idyria.osi.wsb.webapp.localweb.LocalWebEngine
 import java.io.File
-import edu.kit.ipe.adl.indesign.core.harvest.fs.HarvestedFile
-import edu.kit.ipe.adl.indesign.module.maven.utils.VersionLocator
+import org.odfi.indesign.core.harvest.fs.HarvestedFile
+
 import odfi.server.manager.ODFIManagerUI
 import com.idyria.osi.tea.logging.TLog
 import com.idyria.osi.wsb.webapp.localweb.SingleViewIntermediary
-import edu.kit.ipe.adl.indesign.tcl.integration.TclintLibrary
-import edu.kit.ipe.adl.indesign.core.harvest.Harvester
+import org.odfi.tcl.integration.TclintLibrary
+import org.odfi.indesign.core.harvest.Harvester
 import odfi.server.manager.ui.ODFIManagerUIModule
-import edu.kit.ipe.adl.indesign.core.config.Config
-import edu.kit.ipe.adl.indesign.core.config.ooxoo.OOXOOFSConfigImplementation
-import edu.kit.ipe.adl.indesign.core.module.eclipse.EclipseModule
+import org.odfi.indesign.core.config.Config
+import org.odfi.indesign.core.config.ooxoo.OOXOOFSConfigImplementation
 
-object ODFI extends App with SwingUtilsTrait with JavaFXUtilsTrait {
+import org.odfi.indesign.ide.module.maven.utils.VersionLocator
+import org.odfi.indesign.core.module.jfx.JavaFXUtilsTrait
+import org.odfi.indesign.core.module.jfx.JFXRun
+import org.odfi.indesign.core.module.swing.SwingUtilsTrait
+import org.odfi.wsb.fwapp.assets.ResourcesAssetSource
+import com.idyria.osi.wsb.core.network.connectors.tcp.TCPConnector
+import com.idyria.osi.wsb.core.network.connectors.tcp.TCPProtocolHandlerConnector
+
+object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
   println(s"Starting ODFI Standalone....")
+
+  //Brain.tlogEnableFull[ResourcesAssetSource]
 
   sys.env.keys.foreach {
     k => println(s"KE: " + k + " -> " + sys.env(k))
@@ -81,19 +86,21 @@ object ODFI extends App with SwingUtilsTrait with JavaFXUtilsTrait {
   //-- Prepare Indesign
   IndesignPlatorm.prepareDefault
   IndesignPlatorm use ODFIIDModule
+
   IndesignPlatorm use ODFIManagerUIModule
+ // ODFIManagerUIModule.listen(8585)
+
   IndesignPlatorm use Config
   Config.setImplementation(new OOXOOFSConfigImplementation(new File("manager-db")))
 
-  
   //-- Add Special Modules
-  IndesignPlatorm use EclipseModule
-  EclipseModule.addDerivedResource(HarvestedFile(new File("E:\\Common\\Projects\\eclipse-workspaces\\neon")))
-  
+  /* IndesignPlatorm use EclipseModule
+  EclipseModule.addDerivedResource(HarvestedFile(new File("E:\\Common\\Projects\\eclipse-workspaces\\neon")))*/
+
   //--
-  JavaFXRun.noImplicitExit
-  JavaFXRun.waitStarted
-  var hostServices = JavaFXRun.application.getHostServices
+  JFXRun.noImplicitExit
+  JFXRun.waitStarted
+  var hostServices = JFXRun.application.getHostServices
 
   //-- Prepare a few data like images
   Toolkit.getDefaultToolkit
@@ -125,16 +132,24 @@ object ODFI extends App with SwingUtilsTrait with JavaFXUtilsTrait {
         Brain.moveToStart
       }
 
-      addActionMenu(popupMenu)("Manager -> Open") {
+      ODFIManagerUIModule.engine.network.connectors.toList.find { 
+        case c : TCPProtocolHandlerConnector[_] => true
+        case other => false 
+        
+      } match {
+        case Some(tc : TCPProtocolHandlerConnector[_]) =>
+          addActionMenu(popupMenu)("Manager -> Open") {
 
-        hostServices.showDocument(s"http://localhost:${LocalWebEngine.httpConnector.port}/")
+            hostServices.showDocument(s"http://localhost:${tc.port}/odfi")
 
+          }
+        case None =>
       }
 
       addActionMenu(popupMenu)("Manager -> Stop") {
 
         Brain.moveToShutdown
-        JavaFXRun.stopAll
+        JFXRun.stopAll
 
       }
 
@@ -143,15 +158,15 @@ object ODFI extends App with SwingUtilsTrait with JavaFXUtilsTrait {
       var tray = SystemTray.getSystemTray
       var mainIcon = new TrayIcon(mainIcon512AWT, "ODFI Manager")
       tray.add(mainIcon)
-      
- 
 
       addActionMenu(popupMenu)("Quit") {
 
-        Brain.moveToShutdown
-        JavaFXRun.stopAll
+        IndesignPlatorm.stop
+        //Brain.moveToShutdown
+        JFXRun.stopAll
         popupMenu.setVisible(false)
         SystemTray.getSystemTray.remove(mainIcon)
+
 
       }
 
@@ -178,7 +193,7 @@ object ODFI extends App with SwingUtilsTrait with JavaFXUtilsTrait {
 
     case false =>
 
-      JavaFXRun.onJavaFX {
+      JFXRun.onJavaFX {
 
         val mainIcon512FXImage = new Image(mainIcon512PNGURL.toString())
         var alert = new Alert(AlertType.ERROR);

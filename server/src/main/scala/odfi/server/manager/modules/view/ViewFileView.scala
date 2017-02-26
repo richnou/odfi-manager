@@ -1,16 +1,14 @@
 package odfi.server.manager.modules.view
 
-import edu.kit.ipe.adl.indesign.core.module.ui.www.stream.StreamUIBuilder
-import odfi.server.manager.ui.ODFIBaseUI
+
+
 import odfi.server.manager.modules.ui.PathRequiredUtil
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.ZoneId
 import java.time.Instant
-import edu.kit.ipe.adl.indesign.core.module.ui.www.edit.ace.ACEEditorBuilder
-import edu.kit.ipe.adl.indesign.core.module.webdraw.WebdrawViewBuilder
-import edu.kit.ipe.adl.indesign.core.module.ui.www.edit.FileEditBuilder
 
+/*
 class ViewFileView extends ODFIBaseUI with StreamUIBuilder with PathRequiredUtil with FileEditBuilder  {
 
   this.definePart("page-content") {
@@ -79,4 +77,4 @@ class ViewFileView extends ODFIBaseUI with StreamUIBuilder with PathRequiredUtil
     }
   }
   
-}
+}*/

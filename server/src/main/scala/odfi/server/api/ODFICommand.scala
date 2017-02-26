@@ -1,14 +1,14 @@
 package odfi.server.api
 
-import edu.kit.ipe.adl.indesign.core.module.process.IDCommand
-import edu.kit.ipe.adl.indesign.core.module.process.IDProcess
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
+import org.odfi.indesign.core.module.process.IDCommand
+import org.odfi.indesign.core.module.process.IDProcess
+import org.odfi.tcl.nx.NXObject
 import odfi.server.ODFIInstallation
 import java.io.File
-import edu.kit.ipe.adl.indesign.tcl.TclValue
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObjectCacheFactory
-import edu.kit.ipe.adl.indesign.core.heart.HeartTask
-import edu.kit.ipe.adl.indesign.core.heart.Heart
+import org.odfi.tcl.TclValue
+import org.odfi.tcl.nx.NXObjectCacheFactory
+import org.odfi.indesign.core.heart.HeartTask
+import org.odfi.indesign.core.heart.Heart
 import java.util.concurrent.Semaphore
 
 class ODFICommand(val odfi: ODFIInstance, obj: NXObject) extends NXObject(obj) with NamedDescription {
