@@ -27,10 +27,12 @@ set version [regsub -- {-SNAPSHOT} $pomVersion "" ]
 
 
 #### Nightly?
-set branch [::odfi::git::current-branch $location]
-set branch "master"
+if {[catch {set branch [::odfi::git::current-branch $location]}]} {
+    set branch "dev"
+}
+
 set nightly false
-if {$branch=="master"} {
+if {$branch=="dev"} {
     set nightly true
     set version "${version}.[clock milliseconds]"
 }
