@@ -22,8 +22,8 @@
 !define VERSION "<% return $version %>"
 
 Name "ODFI Manager"
-OutFile "odfi-installer-${VERSION}.exe"
-
+;;OutFile "odfi-installer-${VERSION}.exe"
+OutFile "odfi-installer.exe"
 
 
 ;LicenseData ..\..\..\LICENSE.txt

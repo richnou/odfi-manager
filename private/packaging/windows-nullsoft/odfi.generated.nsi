@@ -19,11 +19,11 @@
 
 ;;;;;; NAMING and parameters
 ;;;;;;;;;;;;;;;;;;;;;;;;
-!define VERSION "3.0.0.1479828206757"
+!define VERSION "3.0.0.1488213771837"
 
 Name "ODFI Manager"
-OutFile "odfi-installer-${VERSION}.exe"
-
+;;OutFile "odfi-installer-${VERSION}.exe"
+OutFile "odfi-installer.exe"
 
 
 ;LicenseData ..\..\..\LICENSE.txt
@@ -85,9 +85,6 @@ RequestExecutionLevel user
 !insertmacro MUI_PAGE_COMPONENTS
 
 !insertmacro MUI_PAGE_DIRECTORY
-
-
-
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -121,7 +118,7 @@ Section "ODFI Manager"
 
   SetOutPath $INSTDIR
   File  ..\..\..\logo\logo_main_512.ico
-
+  
   SetOutPath $INSTDIR\bin
   File  ..\..\..\bin\*
   File  ..\..\..\server\target\odfi-manager-server.exe
@@ -162,11 +159,10 @@ Section "ODFI Manager"
   ;; Modify Path
   ${EnvVarUpdate} "mp" "PATH" "A" "HKCU" "$INSTDIR\bin"
 
-  ;;!insertmacro MUI_STARTMENU_WRITE_BEGIN startmenu
+  ;; Add Progam Startup Menu
   CreateDirectory "$SMPROGRAMS\odfi-manager"
   CreateShortcut "$SMPROGRAMS\odfi-manager\ODFI Manager.lnk" "$INSTDIR\bin\odfi-manager.exe"     "" $INSTDIR\logo_main_512.ico"
-   CreateShortcut "$SMPROGRAMS\odfi-manager\Uninstall ODFI Manager.lnk" "$INSTDIR\uninstall.exe"
-  ;;!insertmacro MUI_STARTMENU_WRITE_END
+  CreateShortcut "$SMPROGRAMS\odfi-manager\Uninstall ODFI Manager.lnk" "$INSTDIR\uninstall.exe"
 
 SectionEnd
 
@@ -186,7 +182,6 @@ SectionEnd
 
 Section "Uninstall"
 
-  ;ADD YOUR OWN FILES HERE...
 
   Delete "$INSTDIR\Uninstall.exe"
 
@@ -199,6 +194,8 @@ Section "Uninstall"
 
   ;; Modify Path
   ${un.EnvVarUpdate} "mpu" "PATH" "R" "HKCU" "$INSTDIR\bin"
+
+  ;; Remove Program Startup
 
 SectionEnd
 

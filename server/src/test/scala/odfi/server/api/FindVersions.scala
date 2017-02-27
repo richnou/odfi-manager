@@ -11,6 +11,6 @@ object FindVersions extends App {
   
   var archivaInstall = new ArchivaRestInterface("https://www.opendesignflow.org/maven")
   
-  archivaInstall.getVersionsFor("org.odfi.indesign.ide", "indesign-ide-core")
+  archivaInstall.listVersionsFor("org.odfi.indesign.ide", "indesign-ide-core")
   
 }

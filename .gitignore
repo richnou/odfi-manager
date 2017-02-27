@@ -3,3 +3,7 @@ install/
 configs
 private/nsf/nsf2.0.0/
 temp/
+**/.settings
+.buildpath
+.project
+generated/

@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>org.odfi</groupId>
 		<artifactId>superpom-scala</artifactId>
-		<version>2.12.1.r7</version>
+		<version>2.12.1.r8</version>
 	</parent>
 
 	<properties>
@@ -63,7 +63,29 @@
 							</sources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>attach-artifacts</id>
+						<phase>package</phase>
+						<goals>
+							<goal>attach-artifact</goal>
+						</goals>
+						<configuration>
+							<artifacts>
+								<artifact>
+									<file>target/${project.artifactId}-${project.version}.exe</file>
+									<type>exe</type>
+									<classifier>runner</classifier>
+								</artifact>
+								<artifact>
+									<file>../private/packaging/windows-nullsoft/odfi-installer.exe</file>
+									<type>exe</type>
+									<classifier>installer</classifier>
+								</artifact>
+							</artifacts>
+						</configuration>
+					</execution>
 				</executions>
+
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -128,6 +150,7 @@
 			</plugin>
 
 
+			<!-- Windows package -->
 			<plugin>
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
 				<artifactId>launch4j-maven-plugin</artifactId>
@@ -166,8 +189,87 @@
 					</execution>
 				</executions>
 			</plugin>
+
+
 		</plugins>
 	</build>
+
+	<!-- Installer must be build using Profiles -->
+	<!-- ############ -->
+	<profiles>
+		<profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>
+                        windows
+                    </family>
+                </os>
+            </activation>
+			<build>
+				<plugins>
+					<!-- Windows installer -->
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>make-installer</id>
+								<phase>package</phase>
+								<configuration>
+									<tasks>
+										<exec executable="C:\\msys64\\usr\\bin\\make">
+											<arg value="-C" />
+											<arg value="../private/packaging/windows-nullsoft/" />
+											<arg value="installer" />
+										</exec>
+									</tasks>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>
+                        linux
+                    </family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- Windows installer -->
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>make-installer</id>
+                                <phase>package</phase>
+                                <configuration>
+                                    <tasks>
+                                        <exec executable="/usr/bin/make">
+                                            <arg value="-C" />
+                                            <arg value="../private/packaging/windows-nullsoft/" />
+                                            <arg value="installer" />
+                                        </exec>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+	</profiles>
 
 	<!-- Repositories to find OSI packages -->
 	<!-- ############################################## -->

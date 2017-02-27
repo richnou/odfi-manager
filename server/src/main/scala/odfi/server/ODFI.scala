@@ -88,7 +88,7 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
   IndesignPlatorm use ODFIIDModule
 
   IndesignPlatorm use ODFIManagerUIModule
- // ODFIManagerUIModule.listen(8585)
+  ODFIManagerUIModule.listen(8585)
 
   IndesignPlatorm use Config
   Config.setImplementation(new OOXOOFSConfigImplementation(new File("manager-db")))
@@ -105,10 +105,10 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
   //-- Prepare a few data like images
   Toolkit.getDefaultToolkit
 
-  val mainIcon512PNGURL = this.getClass().getClassLoader.getResource("logo-main-512.png")
-  val mainIcon512ICOURL = this.getClass().getClassLoader.getResource("logo-main-16.png")
+  val mainIcon512PNGURL = this.getClass().getClassLoader.getResource("odfi/logos/logo-main-512.png")
+  val mainIcon512ICOURL = this.getClass().getClassLoader.getResource("odfi/logos/logo-main-16.png")
   val mainIcon512AWT = ImageIO.read(mainIcon512ICOURL)
-
+ 
   //-- Splashscreen
 
   //-- Create App tray
