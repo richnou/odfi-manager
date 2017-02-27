@@ -136,8 +136,8 @@ Section "ODFI Manager"
   SetOutPath $INSTDIR\configs
   File  ..\..\..\configs\*
 
-  SetOutPath $INSTDIR\site
-  File /r ..\..\..\site\*
+  ;;SetOutPath $INSTDIR\site
+  ;;File /r ..\..\..\site\*
 
    SetOutPath $INSTDIR
 

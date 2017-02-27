@@ -19,7 +19,7 @@
 
 ;;;;;; NAMING and parameters
 ;;;;;;;;;;;;;;;;;;;;;;;;
-!define VERSION "3.0.0.1488213771837"
+!define VERSION "3.0.0.1488216149026"
 
 Name "ODFI Manager"
 ;;OutFile "odfi-installer-${VERSION}.exe"
@@ -136,8 +136,8 @@ Section "ODFI Manager"
   SetOutPath $INSTDIR\configs
   File  ..\..\..\configs\*
 
-  SetOutPath $INSTDIR\site
-  File /r ..\..\..\site\*
+  ;;SetOutPath $INSTDIR\site
+  ;;File /r ..\..\..\site\*
 
    SetOutPath $INSTDIR
 

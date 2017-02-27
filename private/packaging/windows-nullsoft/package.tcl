@@ -45,7 +45,7 @@ odfi::files::inDirectory $location/../../../server/ {
     if {![file exists target/odfi-manager-server.exe]} {
         puts "Test: [exec which mvn]"
         set mvn [exec which mvn]
-        exec bash  E:/git/main/java/maven/3.3.9/bin/mvn package >&@stdout
+        #exec bash  E:/git/main/java/maven/3.3.9/bin/mvn package >&@stdout
     }
     
     
