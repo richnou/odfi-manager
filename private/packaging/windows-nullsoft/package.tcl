@@ -9,8 +9,12 @@ set location [file dirname [info script]]
 ## Parameters
 ##############
 
+if {[catch {set nsisPath [exec which makensis]}]} {
 
-set nsisPath "C:/Program Files (x86)/NSIS/Bin/makensis.exe"
+    set nsisPath "C:/Program Files (x86)/NSIS/Bin/makensis.exe"
+
+}
+
 
 ### Determine version
 ##########################
@@ -38,10 +42,12 @@ puts "Version: $version $branch"
 #####################
 odfi::files::inDirectory $location/../../../server/ {
 
-    puts "Test: [exec which mvn]"
-    set mvn [exec which mvn]
-
-    #exec bash  E:/git/main/java/maven/3.3.9/bin/mvn package >&@stdout
+    if {![file exists target/odfi-manager-server.exe]} {
+        puts "Test: [exec which mvn]"
+        set mvn [exec which mvn]
+        exec bash  E:/git/main/java/maven/3.3.9/bin/mvn package >&@stdout
+    }
+    
     
     file copy -force target/odfi-server-${pomVersion}.exe target/odfi-manager-server.exe
 }
@@ -63,11 +69,12 @@ odfi::files::inDirectory $location {
     exec $nsisPath $location/odfi.generated.nsi
     
     ## If odfi exe exists, upload it 
+    ## Disable for now, try to deploy to maven
     if {[file exists odfi-installer-$version.exe]} {
         puts "Uploading..."
-        ::odfi::richstream::template::stringToFile "$version" $location/odfi-version.ini 
-        exec scp odfi-installer-$version.exe        rleys@buddy.idyria.com:/data/access/osi/files/builds/odfi/win32/odfi-installer-$version.exe >&@stdout
-        exec scp odfi-version.ini                   rleys@buddy.idyria.com:/data/access/osi/files/builds/odfi/win32/odfi-version.ini >&@stdout
+        #::odfi::richstream::template::stringToFile "$version" $location/odfi-version.ini 
+        #exec scp odfi-installer-$version.exe        rleys@buddy.idyria.com:/data/access/osi/files/builds/odfi/win32/odfi-installer-$version.exe >&@stdout
+        #exec scp odfi-version.ini                   rleys@buddy.idyria.com:/data/access/osi/files/builds/odfi/win32/odfi-version.ini >&@stdout
     }
     
 }
