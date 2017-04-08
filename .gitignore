@@ -7,3 +7,5 @@ temp/
 .buildpath
 .project
 generated/
+server/manager-db/
+**/target/*
