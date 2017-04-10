@@ -30,6 +30,7 @@ msys:
 #	@git-dch --ignore-branch --auto
 deb: TARGET:=deb 
 deb: DVERSION:=$(VERSION)-0
+deb: DIST?=jessie
 deb:dist
 	@echo "Making Deb Source Package"
 	@echo "Packing and Unpacking Stage..."
@@ -39,6 +40,9 @@ deb:dist
 	@cp -Rf private/packaging/debian .
 	@mv debian dist/odfi_$(VERSION).orig/
 	@cd dist/odfi_$(VERSION).orig/ && debuild -us -uc -S
+	@sudo pbuilder  --create --distribution $(DIST) --override-config
+	@sudo pbuilder  --update --distribution $(DIST) --override-config
+	@sudo pbuilder --build --distribution $(DIST) dist/*.dsc
 
 
 
