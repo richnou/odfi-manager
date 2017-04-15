@@ -19,6 +19,7 @@ dist: dist-clean install
 	@cp Makefile $(PREFIX)
 
 dist-clean:
+	@echo "Cleaning Dist"
 	@rm -Rf dist
 
 ######### System ###########################
@@ -32,17 +33,21 @@ deb: TARGET:=deb
 deb: DVERSION:=$(VERSION)-0
 deb: DIST?=jessie
 deb:dist
-	@echo "Making Deb Source Package"
+	@echo "Making Deb Source Package for $(DIST)..."
 	@echo "Packing and Unpacking Stage..."
 	@mv dist/stage dist/odfi_$(VERSION).orig
 	@cd dist/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
 	@echo "Generating Changelog from top folder, will move debian to dist subdirectory later..."
-	@cp -Rf private/packaging/debian .
+	@rm -Rf debian && cp -Rf private/packaging/debian .
+	@git-dch --force-distribution --ignore-branch --auto --distribution=$(DIST)
 	@mv debian dist/odfi_$(VERSION).orig/
-	@cd dist/odfi_$(VERSION).orig/ && debuild -us -uc -S
-	@sudo pbuilder  --create --distribution $(DIST) --override-config
-	@sudo pbuilder  --update --distribution $(DIST) --override-config
+	@cd dist/odfi_$(VERSION).orig/ && debuild -k8932D4D3 -S
 	@sudo pbuilder --build --distribution $(DIST) dist/*.dsc
+	@cp /var/cache/pbuilder/result/* dist/
+	@debsign -k8932D4D3 dist/*.changes
+#@sudo pbuilder  --create --distribution $(DIST) --override-config
+#@sudo pbuilder  --update --distribution $(DIST) --override-config
+#@sudo pbuilder --build --distribution $(DIST) dist/*.dsc
 
 
 
