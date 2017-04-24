@@ -11,3 +11,6 @@ server/manager-db/
 **/target/*
 .staging/
 lib/nsf/
+*.exe
+server/.cache-main
+server/.*
