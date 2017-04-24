@@ -30,12 +30,10 @@ import com.idyria.osi.wsb.webapp.localweb.LocalWebEngine
 import java.io.File
 import org.odfi.indesign.core.harvest.fs.HarvestedFile
 
-import odfi.server.manager.ODFIManagerUI
 import com.idyria.osi.tea.logging.TLog
 import com.idyria.osi.wsb.webapp.localweb.SingleViewIntermediary
 import org.odfi.tcl.integration.TclintLibrary
 import org.odfi.indesign.core.harvest.Harvester
-import odfi.server.manager.ui.ODFIManagerUIModule
 import org.odfi.indesign.core.config.Config
 import org.odfi.indesign.core.config.ooxoo.OOXOOFSConfigImplementation
 
@@ -46,6 +44,8 @@ import org.odfi.indesign.core.module.swing.SwingUtilsTrait
 import org.odfi.wsb.fwapp.assets.ResourcesAssetSource
 import com.idyria.osi.wsb.core.network.connectors.tcp.TCPConnector
 import com.idyria.osi.wsb.core.network.connectors.tcp.TCPProtocolHandlerConnector
+import odfi.server.manager.ui.ODFIManagerSite
+import java.awt.GraphicsEnvironment
 
 object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
@@ -85,10 +85,10 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
   //-- Prepare Indesign
   IndesignPlatorm.prepareDefault
-  IndesignPlatorm use ODFIIDModule
+  IndesignPlatorm use ODFIManagerModule
 
-  IndesignPlatorm use ODFIManagerUIModule
-  ODFIManagerUIModule.listen(8585)
+  IndesignPlatorm use ODFIManagerSite
+  ODFIManagerSite.listen(8585)
 
   IndesignPlatorm use Config
   Config.setImplementation(new OOXOOFSConfigImplementation(new File("manager-db")))
@@ -98,113 +98,115 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
   EclipseModule.addDerivedResource(HarvestedFile(new File("E:\\Common\\Projects\\eclipse-workspaces\\neon")))*/
 
   //--
-  JFXRun.noImplicitExit
-  JFXRun.waitStarted
-  var hostServices = JFXRun.application.getHostServices
+  if (!GraphicsEnvironment.isHeadless()) {
+    JFXRun.noImplicitExit
+    JFXRun.waitStarted
+    var hostServices = JFXRun.application.getHostServices
 
-  //-- Prepare a few data like images
-  Toolkit.getDefaultToolkit
+    //-- Prepare a few data like images
+    Toolkit.getDefaultToolkit
 
-  val mainIcon512PNGURL = this.getClass().getClassLoader.getResource("odfi/logos/logo-main-512.png")
-  val mainIcon512ICOURL = this.getClass().getClassLoader.getResource("odfi/logos/logo-main-16.png")
-  val mainIcon512AWT = ImageIO.read(mainIcon512ICOURL)
- 
-  //-- Splashscreen
+    val mainIcon512PNGURL = this.getClass().getClassLoader.getResource("odfi/logos/logo-main-512.png")
+    val mainIcon512ICOURL = this.getClass().getClassLoader.getResource("odfi/logos/logo-main-16.png")
+    val mainIcon512AWT = ImageIO.read(mainIcon512ICOURL)
 
-  //-- Create App tray
-  SystemTray.isSupported() match {
-    case true =>
+    //-- Splashscreen
 
-      //-- Menu Using Swing
-      //--------------------  
-      UIManager.setLookAndFeel(
-        UIManager.getSystemLookAndFeelClassName());
+    //-- Create App tray
+    SystemTray.isSupported() match {
+      case true =>
 
-      var popupMenu = new JPopupMenu
+        //-- Menu Using Swing
+        //--------------------  
+        UIManager.setLookAndFeel(
+          UIManager.getSystemLookAndFeelClassName());
 
-      var urlInfo = addActionMenu(popupMenu)("URL: http://") {
+        var popupMenu = new JPopupMenu
 
-      }
-
-      addActionMenu(popupMenu)("Manager -> Manager Restart") {
-        Brain.moveToStop
-        Brain.resetState
-        Brain.moveToStart
-      }
-
-      ODFIManagerUIModule.engine.network.connectors.toList.find { 
-        case c : TCPProtocolHandlerConnector[_] => true
-        case other => false 
-        
-      } match {
-        case Some(tc : TCPProtocolHandlerConnector[_]) =>
-          addActionMenu(popupMenu)("Manager -> Open") {
-
-            hostServices.showDocument(s"http://localhost:${tc.port}/odfi")
-
-          }
-        case None =>
-      }
-
-      addActionMenu(popupMenu)("Manager -> Stop") {
-
-        Brain.moveToShutdown
-        JFXRun.stopAll
-
-      }
-
-      //-- Create Tray
-      //--------------------
-      var tray = SystemTray.getSystemTray
-      var mainIcon = new TrayIcon(mainIcon512AWT, "ODFI Manager")
-      tray.add(mainIcon)
-
-      addActionMenu(popupMenu)("Quit") {
-
-        IndesignPlatorm.stop
-        //Brain.moveToShutdown
-        JFXRun.stopAll
-        popupMenu.setVisible(false)
-        SystemTray.getSystemTray.remove(mainIcon)
-
-
-      }
-
-      mainIcon.addMouseListener(new MouseAdapter {
-
-        override def mouseReleased(e: MouseEvent) = {
-
-          if (e.isPopupTrigger()) {
-
-            //trayMenuWindow.
-            popupMenu.setLocation(e.getX(), e.getY());
-            popupMenu.setInvoker(popupMenu);
-            popupMenu.setVisible(true);
-
-          }
+        var urlInfo = addActionMenu(popupMenu)("URL: http://") {
 
         }
-      })
 
-      //-- Create Menu
+        addActionMenu(popupMenu)("Manager -> Manager Restart") {
+          Brain.moveToStop
+          Brain.resetState
+          Brain.moveToStart
+        }
 
-      //-- Starting
-      IndesignPlatorm.start
+        ODFIManagerSite.engine.network.connectors.toList.find {
+          case c: TCPProtocolHandlerConnector[_] => true
+          case other => false
 
-    case false =>
+        } match {
+          case Some(tc: TCPProtocolHandlerConnector[_]) =>
+            addActionMenu(popupMenu)("Manager -> Open") {
 
-      JFXRun.onJavaFX {
+              hostServices.showDocument(s"http://localhost:${tc.port}/odfi")
 
-        val mainIcon512FXImage = new Image(mainIcon512PNGURL.toString())
-        var alert = new Alert(AlertType.ERROR);
-        alert.setTitle("ODFI Manager");
-        alert.setHeaderText("Cannot start ODFI Service Tray");
-        alert.setContentText("ODFI has no support for System Tray on this system and won't start to avoid letting the manager server run without clear notification");
+            }
+          case None =>
+        }
 
-        alert.getDialogPane().getScene().getWindow().asInstanceOf[Stage].getIcons.add(new Image(this.getClass().getClassLoader.getResource("logo-main-512.png").toString()))
+        addActionMenu(popupMenu)("Manager -> Stop") {
 
-        alert.showAndWait();
-      }
+          Brain.moveToShutdown
+          JFXRun.stopAll
+
+        }
+
+        //-- Create Tray
+        //--------------------
+        var tray = SystemTray.getSystemTray
+        var mainIcon = new TrayIcon(mainIcon512AWT, "ODFI Manager")
+        tray.add(mainIcon)
+
+        addActionMenu(popupMenu)("Quit") {
+
+          IndesignPlatorm.stop
+          //Brain.moveToShutdown
+          JFXRun.stopAll
+          popupMenu.setVisible(false)
+          SystemTray.getSystemTray.remove(mainIcon)
+
+        }
+
+        mainIcon.addMouseListener(new MouseAdapter {
+
+          override def mouseReleased(e: MouseEvent) = {
+
+            if (e.isPopupTrigger()) {
+
+              //trayMenuWindow.
+              popupMenu.setLocation(e.getX(), e.getY());
+              popupMenu.setInvoker(popupMenu);
+              popupMenu.setVisible(true);
+
+            }
+
+          }
+        })
+
+        //-- Create Menu
+
+        //-- Starting
+        IndesignPlatorm.start
+
+      case false =>
+
+        JFXRun.onJavaFX {
+
+          val mainIcon512FXImage = new Image(mainIcon512PNGURL.toString())
+          var alert = new Alert(AlertType.ERROR);
+          alert.setTitle("ODFI Manager");
+          alert.setHeaderText("Cannot start ODFI Service Tray");
+          alert.setContentText("ODFI has no support for System Tray on this system and won't start to avoid letting the manager server run without clear notification");
+
+          alert.getDialogPane().getScene().getWindow().asInstanceOf[Stage].getIcons.add(new Image(this.getClass().getClassLoader.getResource("logo-main-512.png").toString()))
+
+          alert.showAndWait();
+        }
+    }
+
   }
 
 }

@@ -6,6 +6,7 @@ import com.idyria.osi.ooxoo.model.producer
 import com.idyria.osi.ooxoo.model.out.markdown.MDProducer
 import com.idyria.osi.ooxoo.model.out.scala.ScalaProducer
 import com.idyria.osi.ooxoo.core.buffers.structural.io.sax.STAXSyncTrait
+import org.odfi.indesign.core.harvest.HarvestedResourceDefaultId
 
 @producers(Array(
   new producer(value = classOf[ScalaProducer]),
@@ -13,10 +14,10 @@ import com.idyria.osi.ooxoo.core.buffers.structural.io.sax.STAXSyncTrait
 object ODFIRunModel extends ModelBuilder {
 
   val run = "Run" is {
+
     "Date" ofType "datetime"
-    "Process" is {
-      attribute("vpid") ofType "integer"
-    }
+    "ProcessID" ofType "integer"
+
     "Statistics" is {
       "Runtime" ofType "long"
       "Success" ofType "boolean" default "true"
@@ -26,27 +27,55 @@ object ODFIRunModel extends ModelBuilder {
       "Content" ofType "cdata"
     }
   }
+ 
+  "RunConfiguration" is {
 
-  "ToolRun" is {
+    "MavenRun" multiple {
+     
+      withTrait(classOf[HarvestedResourceDefaultId])
 
-    "Artifact" is {
-      "groupId" ofType "string"
-      "artifactId" ofType "string"
-      "version" ofType "string"
+      "Path" ofType ("string")
+
+      "BuildGoal" ofType ("string") default "compile"
+
+      "RunDefinition" multiple {
+        ofType("odfi.server.manager.modules.run.Run")
+ 
+        "MainClass" ofType ("string")
+
+        "JDKName" ofType ("string")
+        
+        "Args" is {
+          "Arg" multiple {
+            ofType("string")
+          }
+        }
+
+      }
+
     }
 
-    importElement(run).setMultiple
+    "ToolRun" multiple {
 
-  }
+      "Artifact" is {
+        "groupId" ofType "string"
+        "artifactId" ofType "string"
+        "version" ofType "string"
+      }
 
-  "FileRun" is {
-    withTrait(classOf[STAXSyncTrait])
+      importElement(run).setMultiple
 
-    "Path" ofType "string"
-    "SaveHistory" ofType "integer" default "5"
-    "StreamSave" ofType "boolean" default "false"
+    }
 
-    importElement(run).setMultiple
+    "FileRun" multiple {
+      withTrait(classOf[STAXSyncTrait])
+
+      "Path" ofType "string"
+      "SaveHistory" ofType "integer" default "5"
+      "StreamSave" ofType "boolean" default "false"
+
+      importElement(run).setMultiple
+    }
   }
 
 }

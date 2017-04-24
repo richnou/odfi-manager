@@ -2,18 +2,19 @@ package odfi.server.api
 
 import org.odfi.indesign.core.harvest.fs.HarvestedFile
 import odfi.server.ODFIHarvester
-import odfi.server.ODFIIDModule
 import org.odfi.indesign.core.main.IndesignPlatorm
 import java.io.File
 import odfi.server.ODFIInstallation
 import com.idyria.osi.tea.thread.ThreadLanguage
 import org.odfi.tcl.module.interpreter.TCLInstallationHarvester
+import odfi.server.ODFIManagerModule
+
 
 object TestCommandLongRun extends App with ThreadLanguage {
 
   //-- Find ODFI and TCL
   IndesignPlatorm.prepareDefault
-  IndesignPlatorm use ODFIIDModule
+  IndesignPlatorm use ODFIManagerModule
   ODFIHarvester.deliverDirect(HarvestedFile(new File("""E:\odfi""")))
   IndesignPlatorm.start
 

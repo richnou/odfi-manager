@@ -7,7 +7,7 @@ import java.io.File
 object ODFITestApp extends App {
 
   IndesignPlatorm.prepareDefault
-  IndesignPlatorm use ODFIIDModule
+  IndesignPlatorm use ODFIManagerModule
 
   ODFIHarvester.deliverDirect(HarvestedFile(new File("""E:\odfi""")))
   
