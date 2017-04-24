@@ -9,3 +9,5 @@ temp/
 generated/
 server/manager-db/
 **/target/*
+.staging/
+lib/nsf/
