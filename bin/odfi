@@ -10,6 +10,7 @@ proc pPuts args {
     ::puts ${::putsPrefix}[lindex $args end]
 }
 
+
 #puts "A: [array get env]" 
 
 #exit
@@ -30,16 +31,23 @@ proc isArgument arg {
 proc consumeArgument {argName script} {
     
     set argIndex [lsearch -exact $::argv $argName]
+   
     if {$argIndex!=-1} {
-    
+        
         ## take value if necessary
         ## and remove arg from argv
         set val true
         if {[string match "--*" $argName]} {
             set val [lindex $::argv [expr $argIndex +1]]
-            uplevel set argValue $val
+            if {$val!="" && ![string match "--*" $val]} {
+                uplevel set argValue $val
+                set ::argv [lreplace $::argv $argIndex [expr $argIndex +1]]
+            } else {
+                 catch {uplevel unset argValue}
+                 set ::argv [lreplace $::argv $argIndex $argIndex]
+            }
             
-            set ::argv [lreplace $::argv $argIndex [expr $argIndex +1]]
+         
         } else {
             set ::argv [lreplace $::argv $argIndex $argIndex]
         }   
@@ -99,12 +107,57 @@ set asciiLogo {
 }
 
 
+
+
+## Bootstraping
+##  - Use explicit sourcing here to avoid environment hack with normal installation
+##  - Find ODFI location
+#####################
+
+## Base Folder
+##########
+set managerHome [file normalize [file dirname [info script]]/../]
+if {![file exists $managerHome/lib/module.tm]} {
+    set managerHome [file normalize $managerHome/../share/odfi/]
+}
+set libFolder $managerHome/lib
+set etcFolder $managerHome/etc
+set managerWorkspace [file normalize $::env(HOME)/.odfi]
+
+consumeArgument --workspace {
+
+    if {[catch {set argValue}]} {
+        puts "--workspace must be followed by folder argument"
+        exit -1
+    } else {
+
+        set newWS [file normalize $argValue]
+        if {![file exists $newWS]} {
+            puts "Workspace $newWS must exist..."
+            exit -1
+        } else {
+            set managerWorkspace $newWS
+        }
+
+    }
+
+
+}
+
+
 ## Version and stat
 #################
-consumeArgument -info {
+
+consumeArgument --info {
     
+    puts $asciiLogo
     puts "ODFI Version: $version"
     puts "TCL Version: [info tclversion]"
+    puts "ODFI Running here: [info script]"
+    puts "ODFI HOME: $managerHome"
+    puts "ODFI Workspace: $managerWorkspace"
+
+    exit 0
 
 }
 set verbose false
@@ -112,14 +165,11 @@ consumeArgument -v {
     set verbose true
 }
 
-## Bootstraping
-##  - Use explicit sourcing here to avoid environment hack with normal installation
-##  - Find ODFI location
-#####################
-
 ## Manager HOME
+## This is the folder where data is created and so on
+## ODFI Is user based
 ##  - Here check the path and move to system installation if necessary
-set managerHome [file normalize [file dirname [info script]]/../]
+
 
 set nxLocalPath ""
 
@@ -127,13 +177,15 @@ set nxLocalPath ""
 ## Dev TCL Checks
 ##
 
-set privateDevTCLLocation $managerHome/private/odfi-dev-tcl
+set privateDevTCLLocation $managerWorkspace/private/dev-tcl
 
 if {[file exists $privateDevTCLLocation/tcl/pkgIndex.tcl]} {
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
 } else {
     puts "Initialising TCL Devlib..."
-    catch {exec git clone https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation}
+    ## Create parent folder
+    file mkdir $privateDevTCLLocation
+    catch {exec git clone -b master https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation}
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
 }
 
@@ -216,7 +268,7 @@ package require odfi::errortracer 1.0.0
 
 ## Load language definition
 ## In case of error, maybe update the private dependencies
-source $managerHome/private/odfi.tm
+source $managerHome/lib/odfi.tm
 
 
 
@@ -229,23 +281,42 @@ set odfi [::odfi::odfi default]
 #######################
 
 #### Main Config is the tools installation ########
+#### User config ####
+set defaultConfig [$odfi config default {
+    :installPath set ${::managerWorkspace}/install
+}]
 
-set defaultConfig [$odfi getConfig main]
-
+## Load System configs 
 ## Main Tool COnfig
-foreach confFile [glob -nocomplain $managerHome/configs/*.config.default.tcl] {
+foreach confFile [glob -nocomplain $managerHome/etc/*.config.default.tcl] {
     #$odfi config $confFile
     $defaultConfig apply  {
         source $confFile
     }
 }
 
-foreach confFile [glob -nocomplain $managerHome/configs/*.config.tcl] {
+foreach confFile [glob -nocomplain $managerHome/etc/*.config.tcl] {
     #$odfi config $confFile
     $odfi apply  {
         source $confFile
     }
 }
+
+
+## Load User configs
+foreach confFile [glob -nocomplain $managerWorkspace/*.config.default.tcl] {
+    #$odfi config $confFile
+     $defaultConfig apply  {
+        source $confFile
+    }
+}
+foreach confFile [glob -nocomplain $managerWorkspace/*.config.tcl] {
+    #$odfi config $confFile
+    $odfi apply  {
+        source $confFile
+    }
+}
+
 
 
 ## Load all the repostiory descriptions
@@ -257,18 +328,7 @@ foreach confFile [glob -nocomplain $managerHome/configs/*.config.tcl] {
 #}
 
 
-#### User config ####
-set userConfig [$odfi config user {
 
-    :installPath set ${::env(HOME)}/.odfi/install
-    
-    foreach userConfigFile [global -nocomplain -directory $::env(HOME)/.odfi/ *.config.tcl] {
-        $odfi apply  {
-            source $userConfigFile
-        }
-    }
-    
-}]
 
 #### Other configs #
 
@@ -281,7 +341,7 @@ $odfi gatherModules
 
 ## don't put logo on windows
 #if {[llength [array names ::env SHELL]] > 0} {
-    puts $asciiLogo
+    ##puts $asciiLogo
 #}
 
 
@@ -363,10 +423,4 @@ try {
 }
 
 exit 0
-
-set mainCommand [lindex $::argv 0]
-
-pPuts "Main Command: $mainCommand -> $::argv"
-
-$odfi runCommand $mainCommand [lrange $::argv 1 end]
 
