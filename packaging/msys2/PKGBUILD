@@ -1,0 +1,16 @@
+
+pkgname=odfi
+pkgver=3.0.0
+pkgrel=$(git log --pretty=oneline master | wc -l)
+pkgdesc="ODFI is q package manager"
+arch=('i686' 'x86_64')
+url="http://www.opendesignflow.org"
+license=('GPL')
+groups=('TCL')
+depends=('')
+depends_i686=('mingw-w64-i686-tcl')
+depends_x86_64=('mingw-w64-x86_64-tcl')
+
+package() {
+	make -B -C .. PREFIX="$pkgdir/" install
+}
