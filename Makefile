@@ -17,10 +17,10 @@ package-msys:
 	@echo "Making MSYS Package"
 	@cp packaging/msys2/PKGBUILD .staging/
 	@cd .staging && makepkg-mingw -f -C --sign
-	#@echo "Downloading db..."
-	#@duck -u 84bdfa378ec247619d3f863c95c05569:${OS_USERNAME} -p ${OS_PASSWORD} -e overwrite -d swift://auth.cloud.ovh.net/packaging/msys2/x86_64/odfi.* .
-	#@repo-add odfi.db.tar.xz odfi-*-x86_64.pkg.tar.xz
-	#@duck -u 84bdfa378ec247619d3f863c95c05569:${OS_USERNAME} -p ${OS_PASSWORD} -e overwrite --upload swift://auth.cloud.ovh.net/packaging/msys2/x86_64/ odfi.*
+	@echo "Downloading db..."
+	@cd .staging && mkdir -p repo/x86_64/ && cd repo/x86_64/ && duck -u 84bdfa378ec247619d3f863c95c05569:${OS_USERNAME} -p ${OS_PASSWORD} -e overwrite -d swift://auth.cloud.ovh.net/packaging/msys2/x86_64/odfi.* .
+	@cd .staging/repo/x86_64/ && cp ../../odfi-*-x86_64.pkg.tar.xz . && repo-add odfi.db.tar.xz odfi-*-x86_64.pkg.tar.xz
+	@cd .staging/repo/x86_64/ && duck -u 84bdfa378ec247619d3f863c95c05569:${OS_USERNAME} -p ${OS_PASSWORD} -e overwrite --upload swift://auth.cloud.ovh.net/packaging/msys2/x86_64/ odfi*
 	
 #@sshpass -p "${OS_TENANT_NAME}.${OS_USERNAME}.${OS_PASSWORD}" scp odfi-*-x86_64.pkg.tar.xz pca@gateways.storage.${OS_REGION_NAME}.cloud.ovh.net:/packaging/msys2/x86_64/
 
@@ -37,6 +37,7 @@ stage:
 	@cp -Rfv Makefile bin etc lib/*.tcl lib/*.tm .staging/
 	@mkdir .staging/lib
 	@cp -Rfv lib/*.tcl lib/*.tm .staging/lib
+
 dist: dist-clean install
 	@echo "prepareing dist"
 	@cp Makefile $(PREFIX)

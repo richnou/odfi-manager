@@ -118,7 +118,7 @@ set asciiLogo {
 ##########
 set managerHome [file normalize [file dirname [info script]]/../]
 if {![file exists $managerHome/lib/module.tm]} {
-    set managerHome [file normalize $managerHome/../share/odfi/]
+    set managerHome [file normalize $managerHome/share/odfi/]
 }
 set libFolder $managerHome/lib
 set etcFolder $managerHome/etc

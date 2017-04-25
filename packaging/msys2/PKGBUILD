@@ -1,7 +1,7 @@
 
 pkgname=odfi
 pkgver=3.0.0
-pkgrel=$(git log --pretty=oneline master | wc -l)
+pkgrel=$(git log --pretty=oneline dev | wc -l)
 pkgdesc="ODFI is q package manager"
 arch=('i686' 'x86_64')
 url="http://www.opendesignflow.org"
