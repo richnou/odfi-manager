@@ -18,6 +18,14 @@ namespace eval ::odfi::scm {
             
                 return ${:sanityCheck}
             }
+
+            +method toPath pathOrModule {
+                if {[file exists $pathOrModule]} {
+                    return $pathOrModule
+                } else {
+                    return [$module directory get]
+                }
+            }
             
         }
         
@@ -36,13 +44,20 @@ namespace eval ::odfi::scm {
             #########
             +method accept module {
                 
-               # puts "GIT accept: $module? [$module isPhysical] && [file exists [$module directory get]/.git]"
-                if {[$module isPhysical] && [file exists [$module directory get]/.git]} {
-                    #puts "Accept"
-                    return true
+                # 
+                set targetPath [:toPath $module]
+
+                #puts "GIT accept: $module? [$module isPhysical] && [file exists [$module directory get]/.git]"
+                #puts "GIT accept: $targetPath ?"
+                if {[file exists $targetPath] && [file exists $targetPath/.git]} {
+                    #puts "Yes"
+                    return true 
+
                 } else {
-                    return false
-                }
+
+                    return false 
+
+                } 
             }
             
             +method update module {
@@ -71,7 +86,7 @@ namespace eval ::odfi::scm {
             }
             
             +method isClean module {
-                return [::odfi::git::isClean [${module} directory get]]
+                return [::odfi::git::isClean [:toPath ${module}]]
             }
             
             +method isBehind module {

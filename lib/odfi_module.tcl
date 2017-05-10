@@ -16,6 +16,22 @@
         ${:commandResult} add tclversion [info tclversion]
         
     }
+
+    :command status {
+
+        :log:raw "ODFI Status...."
+
+        if {[catch {set ${::privateDevTCLLocation}}]} {
+            :log:raw "Private TCL Lib status...."
+
+            if {[:runCommandGet "scm/hasChanges" ${::privateDevTCLLocation}]} {
+                :log:raw "Changes detected, don't forget to commit and push: ${::privateDevTCLLocation}"
+            }
+            
+        }
+        
+
+    }
     
     :command modules {
     

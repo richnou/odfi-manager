@@ -1,5 +1,11 @@
 :module "scm" {
     
+    ## Return true or false
+    :command changes-in {
+
+
+    }
+
     ## Utilities for all commands
     :command "get-scms" {
         
@@ -20,21 +26,54 @@
     :command "scm-for" {
     
         set module [lindex $args 0]
-        #puts "SCM form: $module"
-        return [:getValueAs scm-for-$module {
-            
-            #puts "Building value SCM for: $module"
-            
-            ## Look for SCMs
-            set scms [:getValueAs scms {:runCommandGet get-scms}]
-            
-            ## Look for an accepting one
-            $scms @> findOption { $it accept $module }
-            
-        }]
-    
-        
-        
+        if {![file exists $module]} {
+
+          #puts "SCM form: $module"
+          return [:getValueAs scm-for-$module {
+              
+              #puts "Building value SCM for: $module"
+              
+              ## Look for SCMs
+              set scms [:getValueAs scms {:runCommandGet get-scms}]
+              
+              ## Look for an accepting one
+              $scms @> findOption { $it accept $module }
+              
+          }]
+
+        } else {
+
+          ## Look for SCMs
+          set scms [:getValueAs scms {:runCommandGet get-scms}]
+          
+          #puts "SCM Found: [$scms size]"
+          ## Look for an accepting one
+          return [$scms findOption { $it accept $module }]
+
+        }
+ 
+    }
+
+    :command hasChanges {
+
+      set pathOrModule [lindex $args 0]
+      set scm [:runCommandGet "scm-for" $pathOrModule]
+      puts "Run command res: [$scm info class]"
+      if {[$scm isEmpty]} {
+
+        :log:warning "Cannot compute hasChanges for $pathOrModule , no applicable SCM found"
+        return false
+
+      } else {
+
+        set scm [$scm get]
+        if {[$scm isClean $pathOrModule]} {
+          return false
+        } else {
+          return true
+        }
+      }
+
     }
 
     :command "changes" {

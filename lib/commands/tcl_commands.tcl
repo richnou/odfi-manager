@@ -76,7 +76,10 @@
 
     :command packageIndex {
     
-        set outputLocation [lindex $args 0]
+        set outputLocation ${::managerWorkspace}/generated/tcl/pkgIndex.tcl
+        file mkdir ${::managerWorkspace}/generated/tcl/
+
+        #set outputLocation [lindex $args 0]
         
     
         puts "Generating TCL package index to $outputLocation"
@@ -87,7 +90,7 @@
             
             ## Create Environment
             set env [[:getODFI] env:environment]
-            $env buildFromModules
+            #$env buildFromModules
             $env detach
             
             [$env shade ::odfi::environment::PreScript children] @> filter { return [string match "*.tcl" [$it path get]] } @> foreach {

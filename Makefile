@@ -36,7 +36,7 @@ stage:
 	@mkdir -p .staging
 	@cp -Rfv Makefile bin etc lib/*.tcl lib/*.tm .staging/
 	@mkdir .staging/lib
-	@cp -Rfv lib/*.tcl lib/*.tm .staging/lib
+	@cp -Rfv lib/*.tcl lib/*.tm lib/commands .staging/lib
 
 dist: dist-clean install
 	@echo "prepareing dist"
@@ -56,7 +56,9 @@ install:
 	@ln -s  $(PREFIX)/usr/share/odfi/bin/odfi $(PREFIX)/bin/odfi
 	@install -D lib/*.tm  -t $(PREFIX)/usr/share/odfi/lib/
 	@install -D lib/*.tcl -t $(PREFIX)/usr/share/odfi/lib/
+	@install -D lib/commands/*.* -t $(PREFIX)/usr/share/odfi/lib/commands/
 	@install -D etc/* -t $(PREFIX)/usr/share/odfi/etc/
+
 
 ######### System ###########################
 

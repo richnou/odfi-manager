@@ -72,6 +72,13 @@ namespace eval odfi {
                 return [:findParentInPrimaryLine { $it isClass ::odfi::Config }]
 
             }
+
+            ## Return the main top level ODFI instance
+            +method getModule args {
+
+                return [:findParentInPrimaryLine { $it isClass ::odfi::Module }]
+
+            }
         }
 
         +type Indexing {
@@ -624,6 +631,8 @@ namespace eval odfi {
                         ## Utilities
                         #############
 
+
+
                         ## Writes the Command Environment to the target file, and then the provided content using the richstream template api
                         +method externalScriptWithEnvironment {file content} {
 
@@ -678,7 +687,8 @@ namespace eval odfi {
                     :command : Runnable name script {
                         
                         +var commandResult ""
-                        
+                        +var currentArgs ""
+
                         +builder {
                         
                             ## Create Default command result
@@ -743,6 +753,12 @@ namespace eval odfi {
                             return [${:commandResult} state get]
                         }
                         
+                        +method changeToModuleDir args {
+
+                            cd [[:getModule] @> getDirectory]/[join $args /]
+
+                        }
+
                         ## Running
                         +method run args {
                             #puts "Running command ${:name} ->  $args -> [join $args]"
@@ -751,6 +767,7 @@ namespace eval odfi {
                             ${:commandResult} clean
                             
                             ::set args [join $args]
+                            ::set :currentArgs $args
                             ::set location [pwd]
 
                             ::set res [:apply ${:script}]
@@ -759,6 +776,14 @@ namespace eval odfi {
                             return ${:commandResult}
                         }
 
+                        ## Arguments 
+                        +method hasArgument name {
+                            if {[lsearch -exact ${:currentArgs} $name]==-1} {
+                                return false 
+                            } else {
+                                return true
+                            }
+                        }
 
                     }
 
@@ -904,14 +929,19 @@ namespace eval odfi {
                             :log:debug "Found [$handlers size] handlers"
                             $handlers isEmpty {
 
-                                puts "Could not find any File Command Handlers accepting file at ${:path}"
+                                :log:error "Could not find any File Command Handlers accepting file at ${:path}"
 
                             } else {
 
                                 ## FIXME: Handler multiple options
-                                set choice [$handlers at 0]
+                                $handlers foreach {
+                                    :log:info "Found File Handler: [$it name get], priority -> [$it priority get]"
+                                }
+                                set sorted [$handlers mapSort {$it priority get} -reverse]
 
-                                puts "Running Command $command with args  $args"
+                                set choice [$sorted at 0]
+
+                                puts "Running Command $command with args  $args and handler [$choice name get]"
                                 $choice run $command [join $args]
 
                             }
@@ -932,7 +962,9 @@ namespace eval odfi {
 
                     ## Must define:
                     ##  - method "accept fileCommand" returning true if the provided file Command is supported
-                    :fileCommandHandler : NameDescription name {
+                    :fileCommandHandler : Runnable name {
+
+                        +var priority 0
 
                         +builder {
 
@@ -1283,7 +1315,7 @@ namespace eval odfi {
                     return $mainCommand
                 }
 
-                :log:raw "Resolving $mainCommand..."
+                :log:fine "Resolving $mainCommand..."
 
 
                 ## Command is either to be looked in modules, or it can be a file
@@ -1430,7 +1462,7 @@ namespace eval odfi {
 
             +method runCommand {mainCommand args} {
 
-                :log:raw "Running Command $mainCommand with arguments $args -> [llength $args]..."
+                :log:fine "Running Command $mainCommand with arguments $args -> [llength $args]..."
 
                 set foundCommand [:resolveCommand $mainCommand]
                 if {$foundCommand==""} {
