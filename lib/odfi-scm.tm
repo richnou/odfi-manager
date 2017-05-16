@@ -23,7 +23,7 @@ namespace eval ::odfi::scm {
                 if {[file exists $pathOrModule]} {
                     return $pathOrModule
                 } else {
-                    return [$module directory get]
+                    return [$pathOrModule directory get]
                 }
             }
             
