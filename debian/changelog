@@ -1,6 +1,6 @@
-odfi (1.0.0-1~8.gbp7b3fae) UNRELEASED; urgency=medium
+odfi (1.0.0-1~9.gbp9ee6a3) UNRELEASED; urgency=medium
 
-  ** SNAPSHOT build @7b3faef593e6d87ca20b4cde1dc8c5117885626a **
+  ** SNAPSHOT build @9ee6a343d61ffee41d96131f4af74304f18394c0 **
 
 
 
@@ -217,4 +217,9 @@ odfi (1.0.0-1~8.gbp7b3fae) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 12:03:00 +0200
+  [ Richard Leys ]
+  * Update changelog for 1.0.0-1~8.gbp7b3fae release
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 12:03:55 +0200
