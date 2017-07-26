@@ -174,4 +174,14 @@ odfi (1.0.0-1~6.gbp7f7ba5) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:54:55 +0200
+  [ Richard Leys ]
+  * Test change for packaging
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Test change for packaging
+  * Test change for packaging
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:55:57 +0200
