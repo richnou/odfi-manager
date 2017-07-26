@@ -18,7 +18,7 @@ deb-src:
 	@echo "Making Deb Source Package for $(DIST)..."
 	@echo "Packing and Unpacking Stage..."
 	@rm -Rf .deb && mkdir -p .deb/odfi_$(VERSION).orig
-	@git fetch && git merge --allow-unrelated-histories origin/$(BRANCH)
+	@git fetch && git merge origin/$(BRANCH)
 	@make stage
 	@mv -f .staging/* .deb/odfi_$(VERSION).orig
 	@cd .deb/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
