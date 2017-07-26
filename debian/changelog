@@ -1,6 +1,6 @@
-odfi (1.0.0-1~4.gbp170e13) UNRELEASED; urgency=medium
+odfi (1.0.0-1~5.gbp22ca80) UNRELEASED; urgency=medium
 
-  ** SNAPSHOT build @170e13156b16b273f666f12a136d1b4faaed1d76 **
+  ** SNAPSHOT build @22ca806883c262304ebd568db358e490d21723c9 **
 
 
 
@@ -153,4 +153,9 @@ odfi (1.0.0-1~4.gbp170e13) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:52:54 +0200
+  [ Richard Leys ]
+  * Update changelog for 1.0.0-1~4.gbp170e13 release
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:54:07 +0200
