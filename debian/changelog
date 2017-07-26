@@ -133,4 +133,17 @@ odfi (1.0.0-1~2.gbpadef29) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:51:19 +0200
+  [ Richard Leys ]
+  * Updated debian packaging
+  * Updated debian packaging
+  * Updating pipeline
+  * Updating pipeline
+  * Updating pipeline
+  * Updating pipeline
+  * Updating pipeline
+  * Updating pipeline
+  * Test Change
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:51:38 +0200
