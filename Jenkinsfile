@@ -19,6 +19,7 @@ stage("Debian Source Package") {
 
 architecture="amd64"
 
+/*
 // Debian
 //---------------------
 stage("Oldstable (Jessie)") {
@@ -82,35 +83,4 @@ stage("Ubuntu Zesty (17.04)") {
     }
 }
 
-
-/*stage("Debian") {
-    
-    node("debian") {
-        
-        target = "debian"
-        pullCode(target)
-        sh "mkdir -p $target/build"
-        sh "rm -Rf $target/build/*.deb"
-        sh "cd $target/build/ && cmake .. -G 'Unix Makefiles'"
-        sh "cd $target/build && make"
-        sh "cd $target/build && make package"
-        archiveArtifacts artifacts: "$target/build/*.deb", onlyIfSuccessful: true
-    }
-    
-}*/
-
-/*stage("Mingw") {
-    
-    node("nsis") {
-        
-        target = "mingw"
-        pullCode(target)
-        sh "mkdir -p $target/build"
-        sh "cd $target/build/ && cmake .. -G 'Unix Makefiles' -DCMAKE_TOOLCHAIN_FILE=./macros/CC_WIN64_MINGW.cmake"
-        sh "cd $target/build && make"
-        sh "cd $target/build && make package"
-        archiveArtifacts artifacts: "$target/build/*.exe", onlyIfSuccessful: true
-    }
-    
-    
-}*/
+*/
