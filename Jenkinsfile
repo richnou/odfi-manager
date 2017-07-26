@@ -12,7 +12,7 @@ stage("Debian Source Package") {
     
     node("debian") {
         pullCode("source")
-        sh "cd source && DCHOPTS=--since=${GGIT_PREVIOUS_SUCCESSFUL_COMMIT} make deb-src"
+        sh "cd source && DCHOPTS=--since=${GIT_PREVIOUS_SUCCESSFUL_COMMIT} make deb-src"
         archiveArtifacts artifacts: "source/.deb/*.dsc,source/.deb/*.changes,source/.deb/*.xy", onlyIfSuccessful: true
     }
 }
