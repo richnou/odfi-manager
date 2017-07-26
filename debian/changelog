@@ -1,6 +1,6 @@
-odfi (1.0.0-1~1.gbpd79fe3) UNRELEASED; urgency=medium
+odfi (1.0.0-1~2.gbpadef29) UNRELEASED; urgency=medium
 
-  ** SNAPSHOT build @d79fe3ecd460e63b902f565ee596fa8e3887c2e2 **
+  ** SNAPSHOT build @adef29f4bc19e5363004ecc0342d5db70dc9ba18 **
 
   [ Richard Leys ]
   * Initial release
@@ -132,4 +132,10 @@ odfi (1.0.0-1~1.gbpd79fe3) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 09:58:16 +0200
+  [ Richard Leys ]
+  * Initial deb script
+  * adding deb
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 10:43:40 +0200
