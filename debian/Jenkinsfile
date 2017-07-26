@@ -6,7 +6,7 @@ void pullCode(String dir) {
         branches: [[name: "*/debian"]], doGenerateSubmoduleConfigurations: false,  
         extensions: [[$class: "RelativeTargetDirectory", relativeTargetDir: dir]], 
         submoduleCfg: [], 
-        userRemoteConfigs: [[url: "https://github.com/unihd-cag/fsmdesigner.git"]]]
+        userRemoteConfigs: [[url: "https://github.com/richnou/odfi-manager.git"]]]
 }
 
 
