@@ -36,7 +36,7 @@ stage:
 	@mkdir -p .staging
 	@cp -Rfv Makefile bin etc lib/*.tcl lib/*.tm .staging/
 	@mkdir .staging/lib
-	@cp -Rfv lib/*.tcl lib/*.tm lib/commands .staging/lib
+	@cp -Rfv lib/nsf/ lib/*.tcl lib/*.tm lib/commands .staging/lib
 
 dist: dist-clean install
 	@echo "prepareing dist"
@@ -49,40 +49,64 @@ dist-clean:
 	@mkdir -p $(PREFIX)
 
 ######### Install for packages ############# 	@cp -Rf private/ $(PREFIX)/usr/share/odfi/private 
+# 	@ln -s  $(PREFIX)/share/odfi/bin/odfi $(PREFIX)/bin/odfi
+#  @install -D lib/nsf/nsf2.0.0-linux -t $(PREFIX)/share/odfi/lib/nsf/nsf2.0.0-linux
+#@mkdir -p $(PREFIX)/share/odfi/lib/nsf
+#	@cp -Rf lib/nsf/nsf2.0.0-linux $(PREFIX)/share/odfi/lib/nsf
 install:
 	@echo "Installing Package to...$(PREFIX)"
-	@install -D bin/odfi $(PREFIX)/usr/share/odfi/bin/odfi
+	@install -D bin/odfi $(PREFIX)/share/odfi/bin/odfi
+	@install -D bin/odfi $(PREFIX)/bin/odfi
 	@mkdir -p $(PREFIX)/bin
-	@ln -s  $(PREFIX)/usr/share/odfi/bin/odfi $(PREFIX)/bin/odfi
-	@install -D lib/*.tm  -t $(PREFIX)/usr/share/odfi/lib/
-	@install -D lib/*.tcl -t $(PREFIX)/usr/share/odfi/lib/
-	@install -D lib/commands/*.* -t $(PREFIX)/usr/share/odfi/lib/commands/
-	@install -D etc/* -t $(PREFIX)/usr/share/odfi/etc/
+	@install -D lib/*.tm  -t $(PREFIX)/share/odfi/lib/
+	@install -D lib/*.tcl -t $(PREFIX)/share/odfi/lib/
+	@install -D lib/commands/*.* -t $(PREFIX)/share/odfi/lib/commands/
+	@mkdir -p $(PREFIX)/share/odfi/lib/nsf
+	@cp -Rf lib/nsf/nsf2.0.0-linux $(PREFIX)/share/odfi/lib/nsf
+	@install -D etc/* -t $(PREFIX)/share/odfi/etc/
+
 
 
 ######### System ###########################
 
 
 	
-
+DVERSION:=$(VERSION)-0
+DEBKEY?=5D88B0DB
 
 #	@git-dch --ignore-branch --auto
-deb: TARGET:=deb 
+deb: PACKAGE:=deb
 deb: DVERSION:=$(VERSION)-0
-deb: DIST?=jessie
-deb:dist
+deb: package 
+
+deb-src: TARGET:=deb 
+deb-src: DVERSION:=$(VERSION)-0
+deb-src: DIST?=UNRELEASED
+deb-src: DCHOPTS?=--auto	
+deb-src: stage
 	@echo "Making Deb Source Package for $(DIST)..."
 	@echo "Packing and Unpacking Stage..."
-	@mv dist/stage dist/odfi_$(VERSION).orig
-	@cd dist/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
+	@rm -Rf .deb && mkdir -p .deb/odfi_$(VERSION).orig
+	@mv -f .staging/* .deb/odfi_$(VERSION).orig
+	@cd .deb/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
 	@echo "Generating Changelog from top folder, will move debian to dist subdirectory later..."
-	@rm -Rf debian && cp -Rf private/packaging/debian .
-	@git-dch --force-distribution --ignore-branch --auto --distribution=$(DIST)
-	@mv debian dist/odfi_$(VERSION).orig/
-	@cd dist/odfi_$(VERSION).orig/ && debuild -k8932D4D3 -S
-	@sudo pbuilder --build --distribution $(DIST) dist/*.dsc
-	@cp /var/cache/pbuilder/result/* dist/
-	@debsign -k8932D4D3 dist/*.changes
+	@rm -Rf debian && cp -Rf packaging/debian .
+	@gbp dch --snapshot $(DCHOPTS) --force-distribution --ignore-branch --distribution=$(DIST)
+	@mv debian .deb/odfi_$(VERSION).orig/
+	@cd .deb/odfi_$(VERSION).orig/ && debuild -k$(DEBKEY) -S
+
+deb-build: DISTRIBUTION?=stable
+deb-build: ARCHITECTURE?=amd64
+deb-build: MIRRORSITE?=http://ftp.fr.debian.org/debian/
+deb-build:
+	@mkdir -p .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
+	@rm -Rf .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/*
+	@sudo pbuilder --create --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
+	@sudo pbuilder --update --mirror $(MIRRORSITE) --override-config --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
+	@sudo pbuilder --build  --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE) .deb/*.dsc
+	@cp -v /var/cache/pbuilder/result/odfi* .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
+	@debsign --re-sign -k$(DEBKEY) .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/*.changes
+
 #@sudo pbuilder  --create --distribution $(DIST) --override-config
 #@sudo pbuilder  --update --distribution $(DIST) --override-config
 #@sudo pbuilder --build --distribution $(DIST) dist/*.dsc
