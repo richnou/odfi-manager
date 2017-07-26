@@ -50,6 +50,7 @@ stage("Testing") {
     }
 }
 
+/*
 // Ubuntu
 //-----------
 mirrorSite="http://nova.clouds.archive.ubuntu.com/ubuntu/"
@@ -81,4 +82,4 @@ stage("Ubuntu Zesty (17.04)") {
         archiveArtifacts artifacts: ".deb/$distribution/$architecture/*.deb", onlyIfSuccessful: true
     }
 }
-
+*/
