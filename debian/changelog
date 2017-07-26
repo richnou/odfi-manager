@@ -1,4 +1,6 @@
-odfi (1.0.0-1~2.gbpadef29) UNRELEASED; urgency=medium
+odfi (1.0.0-1~3.gbp685dfe) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @685dfe16d9dba94ab80ddb921e4e19965b4afb10 **
 
 
 
@@ -146,4 +148,4 @@ odfi (1.0.0-1~2.gbpadef29) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:51:38 +0200
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:52:46 +0200
