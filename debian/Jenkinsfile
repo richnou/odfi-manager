@@ -1,12 +1,13 @@
 
 // Pull Code
 ///-------------------
-
+node {
  checkout poll: false, 
         scm: [$class: "GitSCM", 
         branches: [[name: "*/debian"]], doGenerateSubmoduleConfigurations: false,  
         submoduleCfg: [], 
         userRemoteConfigs: [[url: "https://github.com/richnou/odfi-manager.git"]]]
+}
 
 
 stage("Debian Source Package") {
