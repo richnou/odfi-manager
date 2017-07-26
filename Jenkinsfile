@@ -7,12 +7,18 @@ void pullCode(String dir) {
     	userRemoteConfigs: [[url: "https://github.com/richnou/odfi-manager.git"]]]
 }
 
+if (env.GIT_PREVIOUS_SUCCESSFUL_COMMIT==null) {
+    dchopts="--auto"
+}
+else {
+    dchopts="-since=${env.GIT_PREVIOUS_SUCCESSFUL_COMMIT}"
+}
 
 stage("Debian Source Package") {
     
     node("debian") {
         pullCode("source")
-        sh "cd source && DCHOPTS=--since=${env.GIT_PREVIOUS_SUCCESSFUL_COMMIT} make deb-src"
+        sh "cd source && DCHOPTS=$dchopts make deb-src"
         archiveArtifacts artifacts: "source/.deb/*.dsc,source/.deb/*.changes,source/.deb/*.xy", onlyIfSuccessful: true
     }
 }
