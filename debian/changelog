@@ -138,4 +138,9 @@ odfi (1.0.0-1~2.gbpadef29) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 10:43:40 +0200
+  [ Richard Leys ]
+  * Update changelog for 1.0.0-1~2.gbpadef29 release
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 10:48:15 +0200
