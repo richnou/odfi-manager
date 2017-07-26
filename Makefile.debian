@@ -1,0 +1,45 @@
+
+SHELL=/bin/bash
+VERSION=1.0.0
+DVERSION:=$(VERSION)-0
+DEBKEY?=5D88B0DB
+
+#	@git-dch --ignore-branch --auto
+deb: PACKAGE:=deb
+deb: DVERSION:=$(VERSION)-0
+deb: package 
+
+deb-src: TARGET:=deb 
+deb-src: DVERSION:=$(VERSION)-0
+deb-src: DIST?=UNRELEASED
+deb-src: DCHOPTS?=	
+deb-src: BRANCH?=dev
+deb-src: 
+	@echo "Making Deb Source Package for $(DIST)..."
+	@echo "Packing and Unpacking Stage..."
+	@rm -Rf .deb && mkdir -p .deb/odfi_$(VERSION).orig
+	@git fetch && git merge --allow-unrelated-histories origin/$(BRANCH)
+	@make stage
+	@mv -f .staging/* .deb/odfi_$(VERSION).orig
+	@cd .deb/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
+	@echo "Generating Changelog from top folder, will move debian to dist subdirectory later..."
+	@gbp dch --commit --debian-branch=debian --upstream-branch=origin/$(BRANCH) --snapshot $(DCHOPTS) --force-distribution --auto --distribution=$(DIST)
+	@cp -Rf debian .deb/odfi_$(VERSION).orig/
+	@cd .deb/odfi_$(VERSION).orig/ && debuild -k$(DEBKEY) -S
+
+deb-build: DISTRIBUTION?=stable
+deb-build: ARCHITECTURE?=amd64
+deb-build: MIRRORSITE?=http://ftp.fr.debian.org/debian/
+deb-build:
+	@mkdir -p .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
+	@rm -Rf .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/*
+	@sudo pbuilder --create --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
+	@sudo pbuilder --update --mirror $(MIRRORSITE) --override-config --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
+	@sudo pbuilder --build  --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE) .deb/*.dsc
+	@cp -v /var/cache/pbuilder/result/odfi* .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
+	@debsign --re-sign -k$(DEBKEY) .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/*.changes
+
+
+#@rm -Rf .deb && mkdir -p .deb
+#	@git clone -b $(BRANCH) https://github.com/richnou/odfi-manager.git .deb/odfi_$(VERSION).orig
+#	@cd .deb/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
