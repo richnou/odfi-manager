@@ -1,6 +1,6 @@
-odfi (1.0.0-1~6.gbp7f7ba5) UNRELEASED; urgency=medium
+odfi (1.0.0-1~7.gbp4fdf6f) UNRELEASED; urgency=medium
 
-  ** SNAPSHOT build @7f7ba50de12f63d73118c28d622b331edcc4292a **
+  ** SNAPSHOT build @4fdf6ff776f83c4e7bfe9f4deb65e7b65c7dc68b **
 
 
 
@@ -197,4 +197,19 @@ odfi (1.0.0-1~6.gbp7f7ba5) UNRELEASED; urgency=medium
 
   [ rleys ]
 
- -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:56:54 +0200
+  [ Richard Leys ]
+  * Test change for packaging
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Test change for packaging
+  * Test change for packaging
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Test change for packaging at Wed Jul 26 11:56:22 CEST 2017
+  * Test change for packaging at Wed Jul 26 11:56:43 CEST 2017
+  * Update changelog for 1.0.0-1~6.gbp7f7ba5 release
+  * Test change for packaging at Wed Jul 26 11:58:03 CEST 2017
+
+  [ rleys ]
+
+ -- rleys <rleys@debian>  Wed, 26 Jul 2017 11:58:16 +0200
