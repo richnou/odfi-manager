@@ -82,7 +82,7 @@ deb: package
 deb-src: TARGET:=deb 
 deb-src: DVERSION:=$(VERSION)-0
 deb-src: DIST?=UNRELEASED
-deb-src: DCHOPTS?=	
+deb-src: DCHOPTS?=--auto	
 deb-src: stage
 	@echo "Making Deb Source Package for $(DIST)..."
 	@echo "Packing and Unpacking Stage..."
@@ -91,7 +91,7 @@ deb-src: stage
 	@cd .deb/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
 	@echo "Generating Changelog from top folder, will move debian to dist subdirectory later..."
 	@rm -Rf debian && cp -Rf packaging/debian .
-	@gbp dch --snapshot $(DCHOPTS) --force-distribution --ignore-branch --auto --distribution=$(DIST)
+	@gbp dch --snapshot $(DCHOPTS) --force-distribution --ignore-branch --distribution=$(DIST)
 	@mv debian .deb/odfi_$(VERSION).orig/
 	@cd .deb/odfi_$(VERSION).orig/ && debuild -k$(DEBKEY) -S
 
