@@ -1,0 +1,426 @@
+#!/usr/bin/env tclsh8.6
+
+#puts "PS: $::env(PS1)"
+
+#return
+
+## Puts override to handle adding comment marker to beginning of line
+set putsPrefix "#"
+proc pPuts args {
+    ::puts ${::putsPrefix}[lindex $args end]
+}
+
+
+#puts "A: [array get env]" 
+
+#exit
+
+
+
+## Arguments
+#######################
+set version 3.0.0
+
+proc isArgument arg {
+    set argIndex [lsearch -exact $::argv $arg]
+    if {$argIndex!=-1} {
+        return true
+    }
+}
+
+proc consumeArgument {argName script} {
+    
+    set argIndex [lsearch -exact $::argv $argName]
+   
+    if {$argIndex!=-1} {
+        
+        ## take value if necessary
+        ## and remove arg from argv
+        set val true
+        if {[string match "--*" $argName]} {
+            set val [lindex $::argv [expr $argIndex +1]]
+            if {$val!="" && ![string match "--*" $val]} {
+                uplevel set argValue $val
+                set ::argv [lreplace $::argv $argIndex [expr $argIndex +1]]
+            } else {
+                 catch {uplevel unset argValue}
+                 set ::argv [lreplace $::argv $argIndex $argIndex]
+            }
+            
+         
+        } else {
+            set ::argv [lreplace $::argv $argIndex $argIndex]
+        }   
+        
+        uplevel $script
+       
+        
+        return $val
+    }
+    
+    return false
+}
+
+## Remove all -xxx and --xxx arguments before the first non config argument in argv list
+proc removeConfigArguments args {
+
+    set stop false
+    while {!$stop} {
+        
+        set firstArg [lindex $::argv 0]
+        if {$firstArg=="" || ![string match "-*" $firstArg]} {
+            set stop true
+        } else {
+            
+            ## Remove arg
+            set ::argv [lreplace $::argv 0 0]
+            
+            ## If "--" then remove the next argument as well
+            if {[string match "--*" $firstArg]} {
+                set ::argv [lreplace $::argv 0 0]
+            }
+        }
+    
+    }
+}
+
+## Welcome
+########################
+
+set asciiLogo {
+
+ ██████╗ ██████╗ ███████╗██╗
+ ██╔═══██╗██╔══██╗██╔════╝██║
+ ██║   ██║██║  ██║█████╗  ██║
+ ██║   ██║██║  ██║██╔══╝  ██║
+ ╚██████╔╝██████╔╝██║     ██║
+  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝  
+}
+
+set asciiLogo {
+ _______ ______  _______ _ 
+(_______|______)(_______) |
+ _     _ _     _ _____  | |
+| |   | | |   | |  ___) | |
+| |___| | |__/ /| |     | |
+ \_____/|_____/ |_|     |_|
+}
+
+
+
+
+## Bootstraping
+##  - Use explicit sourcing here to avoid environment hack with normal installation
+##  - Find ODFI location
+#####################
+
+## Base Folder
+##########
+set managerHome [file normalize [file dirname [info script]]/../]
+if {![file exists $managerHome/lib/module.tm]} {
+    set managerHome [file normalize $managerHome/share/odfi/]
+}
+set libFolder $managerHome/lib
+set etcFolder $managerHome/etc
+set managerWorkspace [file normalize $::env(HOME)/.odfi]
+
+consumeArgument --workspace {
+
+    if {[catch {set argValue}]} {
+        puts "--workspace must be followed by folder argument"
+        exit -1
+    } else {
+
+        set newWS [file normalize $argValue]
+        if {![file exists $newWS]} {
+            puts "Workspace $newWS must exist..."
+            exit -1
+        } else {
+            set managerWorkspace $newWS
+        }
+
+    }
+
+
+}
+
+
+## Version and stat
+#################
+
+consumeArgument --info {
+    
+    puts $asciiLogo
+    puts "ODFI Version: $version"
+    puts "TCL Version: [info tclversion]"
+    puts "ODFI Running here: [info script]"
+    puts "ODFI HOME: $managerHome"
+    puts "ODFI Workspace: $managerWorkspace"
+
+    exit 0
+
+}
+set verbose false
+consumeArgument -v {
+    set verbose true
+}
+
+## Manager HOME
+## This is the folder where data is created and so on
+## ODFI Is user based
+##  - Here check the path and move to system installation if necessary
+
+
+set nxLocalPath ""
+
+##
+## Dev TCL Checks
+##
+
+set privateDevTCLLocation $managerWorkspace/private/dev-tcl
+
+if {[file exists $privateDevTCLLocation/tcl/pkgIndex.tcl]} {
+    source $privateDevTCLLocation/tcl/pkgIndex.tcl
+} else {
+    puts "Initialising TCL Devlib..."
+    ## Create parent folder
+    file mkdir $privateDevTCLLocation
+    catch {exec git clone -b master https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation}
+    source $privateDevTCLLocation/tcl/pkgIndex.tcl
+}
+
+
+##
+## NSF Checks
+##
+if {[catch {package require nsf 2.0.0} res]} {
+    
+    ## Try to load local
+    ########
+    #puts "Looking for NSF [string tolower $::tcl_platform(os)]"
+    if {[string match "*windows*" [string tolower $::tcl_platform(platform)]] && [string match "*msys64*" $::tcl_library]} {
+        
+        
+       
+        
+       puts "Can't load NSF, using local version for msys nt"
+        
+        set dir  $managerHome/private/nsf/nsf2.0.0-msys64
+        source   $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        
+        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        
+    } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
+    
+        #puts "Can't load NSF, using local version for windows"
+        
+        set dir  $managerHome/private/nsf/nsf2.0.0-win64
+        source   $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        
+        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        
+   
+        
+       
+    } else {
+
+     puts "Can't load NSF, using local version for linux"
+     set dir  $managerHome/private/nsf/nsf2.0.0-linux/lib/nsf2.0.0
+     source $dir/pkgIndex.tcl
+     set     nxLocalPath $dir/pkgIndex.tcl
+     
+
+    }
+
+    
+} elseif {$verbose} {
+
+    puts "NSF loaded from system, use --privatensf to use local NSF"
+}
+
+if {[catch {package require Itcl} res]} {
+    
+    error "Cannot Load ITCL, no alternative for now"
+
+}
+
+
+#set dependencies {
+#
+##    odfi::closures 3.0.0 https://github.com/unihd-cag/odfi-dev-tcl.git odfi-dev-tcl tcl/pkgIndex.tcl
+#
+#}
+
+#foreach {p version sources outPath indexFile} $dependencies {
+#    
+##    if {[catch {package require $p $version}]} {
+ #       if {![file exists $managerHome/private/$outPath] && [catch {puts [exec git clone $sources  $managerHome/private/$outPath]} res]} {
+#            error "Could not load package $p , and cloning sources failed: $res"
+  #      }
+ #       source $managerHome/private/$outPath/$indexFile
+ #   }
+#}
+
+### EOF Bootstraping ##################
+
+package require odfi::errortracer 1.0.0
+
+
+## Load language definition
+## In case of error, maybe update the private dependencies
+source $managerHome/lib/odfi.tm
+
+
+
+
+## Create Default ODFI Instance
+###################
+set odfi [::odfi::odfi default]
+
+## Create Default Configs
+#######################
+
+#### Main Config is the tools installation ########
+#### User config ####
+set defaultConfig [$odfi config default {
+    :installPath set ${::managerWorkspace}/install
+}]
+
+## Load System configs 
+## Main Tool COnfig
+foreach confFile [glob -nocomplain $managerHome/etc/*.config.default.tcl] {
+    #$odfi config $confFile
+    $defaultConfig apply  {
+        source $confFile
+    }
+}
+
+foreach confFile [glob -nocomplain $managerHome/etc/*.config.tcl] {
+    #$odfi config $confFile
+    $odfi apply  {
+        source $confFile
+    }
+}
+
+
+## Load User configs
+foreach confFile [glob -nocomplain $managerWorkspace/*.config.default.tcl] {
+    #$odfi config $confFile
+     $defaultConfig apply  {
+        source $confFile
+    }
+}
+foreach confFile [glob -nocomplain $managerWorkspace/*.config.tcl] {
+    #$odfi config $confFile
+    $odfi apply  {
+        source $confFile
+    }
+}
+
+
+
+## Load all the repostiory descriptions
+#foreach repoFile [glob -nocomplain $managerHome/repositories/*.repo.tcl] {
+    #$odfi config $confFile
+#    $defaultConfig apply  {
+#        source $repoFile
+#    }
+#}
+
+
+
+
+#### Other configs #
+
+
+## Get all modules
+$odfi gatherModules
+
+## Start
+########
+
+## don't put logo on windows
+#if {[llength [array names ::env SHELL]] > 0} {
+    ##puts $asciiLogo
+#}
+
+
+
+## Consume all arguments until first one is a non configuration argument
+removeConfigArguments
+
+## Remaining Commands
+###################
+proc splitToString {lst splitStr} {
+
+    set finalres {}
+    set lres {}
+    foreach elt $lst {
+
+        if {$elt!=$splitStr} {
+            lappend lres $elt 
+        } else {
+            lappend finalres $lres
+            set lres {}
+        }
+
+    }
+    lappend finalres $lres
+
+    return $finalres
+
+}
+set commands [splitToString $::argv "--"]
+#puts "CMDS: $commands"
+#exit
+
+proc specialJoin args {
+    
+    puts "Specia Join: $args [llength $args]"
+    if {$args=="{}"} {
+        puts "return empty"
+        return ""
+    } else {
+        return [join $args]
+    }
+    ##puts "Specia Join: $args [llength $args]"
+}
+
+## Runnin the commands
+try {
+
+   
+    
+    foreach cmd $commands {
+    
+    
+    
+        set cmd [string trim $cmd]
+        if {$cmd!=""} {
+            set mainCommand [lindex $cmd 0]
+            
+           # puts "Command args: [lrange $cmd 1 end] [llength [lrange $cmd 1 end]] - [specialJoin [lrange $cmd 1 end]]"
+            $odfi runCommand $mainCommand [join [lrange $cmd 1 end]]
+        }
+    
+        
+    
+        #puts "Command: $cmd"
+    }
+
+}  on error {res option} {
+    
+        set stack [dict get $option -errorinfo]
+        puts $stack
+        
+        
+        return
+        set output_list [odfi::errortrace::errorToList $res $option]
+        odfi::errortrace::printErrorList $output_list
+        
+        #odfi::errortrace::printErrorListReverse $output_list
+        #puts "Object call: [$a info class]"        
+}
+
+exit 0
+

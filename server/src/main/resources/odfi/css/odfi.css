@@ -1,0 +1,12 @@
+.ui.page.container {
+	margin: 10px;
+}
+
+.ribbon.label {
+	/*display: block !important;*/
+	clear: right;
+	margin-bottom: 10px !important;
+}
+.ui.label {
+	margin: 5px !important;
+}
