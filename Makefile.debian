@@ -33,14 +33,16 @@ deb-build: MIRRORSITE?=http://ftp.fr.debian.org/debian/
 deb-build:
 	@mkdir -p .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
 	@rm -Rf .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/*
-	@sudo rm -Rf /var/cache/pbuilder/result/odfi*
-	@sudo pbuilder --create --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
-	@sudo pbuilder --update --mirror $(MIRRORSITE) --override-config --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
-	@sudo pbuilder --build  --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE) .deb/*.dsc
-	@cp -v /var/cache/pbuilder/result/odfi* .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
+	@rm -Rf .pbuilder/result
+	@mkdir -p .pbuilder/result && chmod g+rws .pbuilder .pbuilder/result
+	@sudo pbuilder --create  --buildplace .pbuilder --buildresult .pbuilder/result --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
+	@sudo pbuilder --update  --buildplace .pbuilder --buildresult .pbuilder/result --mirror $(MIRRORSITE) --override-config --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE)
+	@sudo pbuilder --build   --buildplace .pbuilder --buildresult .pbuilder/result --mirror $(MIRRORSITE) --distribution $(DISTRIBUTION) --architecture $(ARCHITECTURE) .deb/*.dsc
+	@cp -v .pbuilder/result/odfi* .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/
 	@debsign --re-sign -k$(DEBKEY) .deb/$(DISTRIBUTION)/$(ARCHITECTURE)/*.changes
 
 
+#@sudo rm -Rf /var/cache/pbuilder/result/odfi*
 #@rm -Rf .deb && mkdir -p .deb
 #	@git clone -b $(BRANCH) https://github.com/richnou/odfi-manager.git .deb/odfi_$(VERSION).orig
 #	@cd .deb/ && tar -caf odfi_$(VERSION).orig.tar.gz odfi_$(VERSION).orig
