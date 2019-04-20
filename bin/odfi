@@ -263,7 +263,7 @@ if {[catch {package require Itcl} res]} {
 
 ### EOF Bootstraping ##################
 
-package require odfi::errortracer 1.0.0
+#package require odfi::errortracer 1.0.0
 
 
 ## Load language definition
