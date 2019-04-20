@@ -27,24 +27,44 @@ object ODFIRunModel extends ModelBuilder {
       "Content" ofType "cdata"
     }
   }
- 
-  "RunConfiguration" is {
+  
+  val runTypeTrait = "RunType" is {
+     makeTraitAndUseCustomImplementation
+    
+  }
 
-    "MavenRun" multiple {
-     
+  "RunConfiguration" is {
+    attribute("name")
+    attribute("id")
+
+    
+    // Run Types
+    //-----------------
+    "MavenRun" is {
+      makeTraitAndUseCustomImplementation
+      withTrait(runTypeTrait)
       withTrait(classOf[HarvestedResourceDefaultId])
+
+      "Artifact" is {
+        "groupId" ofType "string"
+        "artifactId" ofType "string"
+        "version" ofType "string"
+      }
 
       "Path" ofType ("string")
 
       "BuildGoal" ofType ("string") default "compile"
 
-      "RunDefinition" multiple {
-        ofType("odfi.server.manager.modules.run.Run")
- 
+      "Run" multiple {
+
+        // withTrait(run)
+        ofType(run)
+        //ofType("odfi.server.manager.modules.run.Run")
+
         "MainClass" ofType ("string")
 
         "JDKName" ofType ("string")
-        
+
         "Args" is {
           "Arg" multiple {
             ofType("string")
@@ -55,7 +75,17 @@ object ODFIRunModel extends ModelBuilder {
 
     }
 
-    "ToolRun" multiple {
+    "ExeRun" is {
+      
+      withTrait(runTypeTrait)
+      makeTraitAndUseCustomImplementation
+      
+      "ExecutablePath" ofType ("file")
+
+      importElement(run).setMultiple
+    }
+
+    "ToolRun" is {
 
       "Artifact" is {
         "groupId" ofType "string"
@@ -67,7 +97,7 @@ object ODFIRunModel extends ModelBuilder {
 
     }
 
-    "FileRun" multiple {
+    "FileRun" is {
       withTrait(classOf[STAXSyncTrait])
 
       "Path" ofType "string"

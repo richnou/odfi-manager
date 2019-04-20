@@ -26,12 +26,11 @@ import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.UIManager
 import javafx.application.Application
-import com.idyria.osi.wsb.webapp.localweb.LocalWebEngine
+
 import java.io.File
 import org.odfi.indesign.core.harvest.fs.HarvestedFile
 
 import com.idyria.osi.tea.logging.TLog
-import com.idyria.osi.wsb.webapp.localweb.SingleViewIntermediary
 import org.odfi.tcl.integration.TclintLibrary
 import org.odfi.indesign.core.harvest.Harvester
 import org.odfi.indesign.core.config.Config
@@ -46,6 +45,7 @@ import com.idyria.osi.wsb.core.network.connectors.tcp.TCPConnector
 import com.idyria.osi.wsb.core.network.connectors.tcp.TCPProtocolHandlerConnector
 import odfi.server.manager.ui.ODFIManagerSite
 import java.awt.GraphicsEnvironment
+import org.odfi.indesign.core.config.ooxoo.OOXOOConfigModule
 
 object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
@@ -53,9 +53,9 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
   //Brain.tlogEnableFull[ResourcesAssetSource]
 
-  sys.env.keys.foreach {
+  /*sys.env.keys.foreach {
     k => println(s"KE: " + k + " -> " + sys.env(k))
-  }
+  }*/
   //TclintLibrary.enableDebug
   //TLog.setLevel(classOf[SingleViewIntermediary], TLog.Level.FULL)
   //TLog.setLevel(classOf[Harvester], TLog.Level.FULL)
@@ -76,7 +76,7 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
   var allArgs = args.zipWithIndex
   var (odfiLoc) = allArgs.toList.find(_._1 == "--odfi").getOrElse(new File("").getAbsolutePath -> -1) match {
     case (path, -1) => new File(path).getCanonicalFile
-    case (p, argi) => new File(args(argi + 1)).getCanonicalFile
+    case (p, argi)  => new File(args(argi + 1)).getCanonicalFile
   }
   ODFIHarvester.saveToAvailableResources(HarvestedFile(odfiLoc))
   /*.collect {
@@ -85,13 +85,20 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
   //-- Prepare Indesign
   IndesignPlatorm.prepareDefault
+
+  //-- Configuration
+  IndesignPlatorm use OOXOOConfigModule
+  //println("Prepare confg folder")
+  OOXOOConfigModule.setConfigFolder(new File("manager-db"))
+
+  //-- Add manager module
   IndesignPlatorm use ODFIManagerModule
 
-  IndesignPlatorm use ODFIManagerSite
-  ODFIManagerSite.listen(8585)
-
-  IndesignPlatorm use Config
-  Config.setImplementation(new OOXOOFSConfigImplementation(new File("manager-db")))
+  //-- Add Site GUI
+  if (args.find(_ == "--nogui").isEmpty) {
+    IndesignPlatorm use ODFIManagerSite
+    ODFIManagerSite.listenWithJMXClose(8585)
+  }
 
   //-- Add Special Modules
   /* IndesignPlatorm use EclipseModule
@@ -135,7 +142,7 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
 
         ODFIManagerSite.engine.network.connectors.toList.find {
           case c: TCPProtocolHandlerConnector[_] => true
-          case other => false
+          case other                             => false
 
         } match {
           case Some(tc: TCPProtocolHandlerConnector[_]) =>
@@ -186,10 +193,7 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
           }
         })
 
-        //-- Create Menu
-
-        //-- Starting
-        IndesignPlatorm.start
+      //-- Create Menu
 
       case false =>
 
@@ -208,5 +212,8 @@ object ODFI extends App with JavaFXUtilsTrait with SwingUtilsTrait {
     }
 
   }
+
+  //-- Starting
+  IndesignPlatorm.start
 
 }

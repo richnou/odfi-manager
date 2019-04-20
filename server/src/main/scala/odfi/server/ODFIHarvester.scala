@@ -33,7 +33,7 @@ object ODFIHarvester extends FileSystemHarvester {
           case true =>
             gather(new ODFIInstallation(baseFolder.toPath()))
           case false =>
-            println("File does not exists: " + odfiBin)
+            //println("File does not exists: " + odfiBin)
         }
 
     }

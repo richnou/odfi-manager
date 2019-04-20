@@ -38,7 +38,7 @@ class DeployerView extends ODFIBaseUI with MarkdownView with FWappResourceValueB
 
         thead("", "Path", "Build Goal", "Args", "Running", "Problems")
 
-        withEmpty(ODFIManagerModule.getRunConfiguration.mavenRuns) {
+        /*withEmpty(ODFIManagerModule.getRunConfiguration.filter(_.mavenRun!=null)) {
           case None =>
             tbody(tr(td("No Projects")(colspan(6))))
 
@@ -110,7 +110,7 @@ class DeployerView extends ODFIBaseUI with MarkdownView with FWappResourceValueB
                             } else {
 
                               // JDK
-                              selectOptions(options)(cl)
+                             // selectOptions(options)(cl)
                               
 
                               // Start
@@ -173,9 +173,9 @@ class DeployerView extends ODFIBaseUI with MarkdownView with FWappResourceValueB
             }
 
         }
-        // EOF Lines
+        // EOF Lines*/
 
-        tfootTrTh {
+        /*tfootTrTh {
           form {
             "inline" :: input {
               fieldName("path")
@@ -190,7 +190,7 @@ class DeployerView extends ODFIBaseUI with MarkdownView with FWappResourceValueB
 
             }
           }
-        }
+        }*/
       }
       //-- EOF MAven table
 

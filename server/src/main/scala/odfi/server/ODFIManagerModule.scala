@@ -69,10 +69,10 @@ object ODFIManagerModule extends IndesignModule with HearthUtilTrait with Harves
 
     // Run Tool
     //----------------
-    val runConfiguration = getRunConfiguration
+
 
     //-- Load maven runs in FS harvester
-    runConfiguration.mavenRuns.foreach {
+    /*runConfiguration.mavenRuns.foreach {
       mavenRun =>
 
         // Make sure it is in search path
@@ -89,15 +89,22 @@ object ODFIManagerModule extends IndesignModule with HearthUtilTrait with Harves
           case None =>
 
         }
-    }
+    }*/
 
   }
 
   // Run tool
   //---------------
+  
+  def getRunConfigurations =   {
+    this.config.get.custom.content.getAllOfType[RunConfiguration]
+  }
 
-  def getRunConfiguration = this.config.get.custom.content.ensureElement[RunConfiguration]
-
+  /**
+   * This method does not save the config back to its source, make sure to sync the config!!
+   */
+  def saveRunConfiguration(rc:RunConfiguration) = this.config.get.custom.content += rc
+  
   // Lifecycle
   //--------------
 

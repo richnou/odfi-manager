@@ -11,11 +11,12 @@
 	<parent>
 		<groupId>org.odfi</groupId>
 		<artifactId>superpom-scala</artifactId>
-		<version>2.12.1.r9</version>
+		<version>2.12.2.r17</version>
 	</parent>
 
 	<properties>
 		<rversion>3.0.0.0</rversion>
+		<ooxoo.version>3.3.0-SNAPSHOT</ooxoo.version>
 	</properties>
 
 	<build>
@@ -89,7 +90,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ooxoo-plugin</artifactId>
-				<version>3.2.3-SNAPSHOT</version>
+				<version>${ooxoo.version}</version>
 				<dependencies>
 				    <dependency>
 				        <groupId>org.odfi.indesign</groupId>
@@ -106,97 +107,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.4.3</version>
-				<configuration>
-					<!-- put your configurations here -->
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<minimizeJar>false</minimizeJar>
-							<finalName>${project.artifactId}-${project.version}-shaded</finalName>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>allinone</shadedClassifierName>
-							<artifactSet>
-								<includes>
-									<include>*:*</include>
-								</includes>
-							</artifactSet>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-									<resource>reference.conf</resource>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>odfi.server.ODFI</mainClass>
-								</transformer>
-							</transformers>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-
-					</execution>
-				</executions>
-			</plugin>
-
-
-			<!-- Windows package -->
-			<plugin>
-				<groupId>com.akathist.maven.plugins.launch4j</groupId>
-				<artifactId>launch4j-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>l4j-clui</id>
-						<phase>package</phase>
-						<goals>
-							<goal>launch4j</goal>
-						</goals>
-						<configuration>
-							<headerType>gui</headerType>
-							<outfile>target/${project.artifactId}-${project.version}.exe</outfile>
-							<jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
-							<errTitle>encc</errTitle>
-							<classPath>
-								<mainClass>odfi.server.ODFI</mainClass>
-								<addDependencies>false</addDependencies>
-								<preCp>anything</preCp>
-							</classPath>
-							<jre>
-								<minVersion>1.8.0</minVersion>
-							</jre>
-							<versionInfo>
-								<fileVersion>${rversion}</fileVersion>
-								<txtFileVersion>${rversion}</txtFileVersion>
-								<fileDescription>ODFIManager</fileDescription>
-								<copyright>Copyright ODFI</copyright>
-								<productVersion>${rversion}</productVersion>
-								<txtProductVersion>${rversion}</txtProductVersion>
-								<productName>ODFIManager</productName>
-								<internalName>ODFIManager</internalName>
-								<originalFilename>ODFIManager.exe</originalFilename>
-							</versionInfo>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-
 		</plugins>
 	</build>
 
@@ -342,22 +252,22 @@
 		<dependency>
 			<groupId>org.odfi.tcl</groupId>
 			<artifactId>tcl-interface</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.odfi.wsb.fwapp</groupId>
 			<artifactId>fwapp-core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.odfi.indesign.ide</groupId>
 			<artifactId>indesign-ide-maven</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.odfi.eda.h2dl</groupId>
 			<artifactId>h2dl-module</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

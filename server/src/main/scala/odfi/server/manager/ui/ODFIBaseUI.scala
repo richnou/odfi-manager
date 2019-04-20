@@ -13,8 +13,9 @@ import odfi.server.api.ODFICommand
 import org.odfi.wsb.fwapp.framework.FWAppTempBufferView
 import org.odfi.wsb.fwapp.module.semantic.SemanticView
 import odfi.server.ODFIManagerModule
+import org.odfi.wsb.fwapp.lib.markdown.MarkdownView
 
-trait ODFIBaseUI extends SemanticView with FWAppTempBufferView {
+trait ODFIBaseUI extends SemanticView with FWAppTempBufferView with MarkdownView {
 
   this.addLibrary("odfi") {
 
@@ -53,7 +54,7 @@ trait ODFIBaseUI extends SemanticView with FWAppTempBufferView {
           "ui header" :: div {
             h1("") {
 
-              image(createAssetsResolverURI("/odfi/logos/logo-main-96.png")) {
+              image(createDefaultAssetsResolverURI("/odfi/logos/logo-main-96.png")) {
               }
               "content" :: div {
                 textContent("ODFI")
@@ -118,6 +119,7 @@ trait ODFIBaseUI extends SemanticView with FWAppTempBufferView {
 
               "ui item" :: a("/")(text("Home"))
               "ui item" :: a("/deployer")(text("Deployer"))
+              "ui item" :: a("/run")(text("Run Configurations"))
               
             }
           }

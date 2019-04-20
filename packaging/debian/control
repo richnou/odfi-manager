@@ -7,6 +7,6 @@ Build-Depends: debhelper (>= 9)
 
 Package: odfi
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends} , tcl8.6 (>= 8.6.0) , itcl3 ( >= 3.4.1)
+Depends: ${shlibs:Depends}, ${misc:Depends} , tcl8.6 (>= 8.6.0)
 Description: TCL ODFI manager
  This package installs the ODFI TCL manager

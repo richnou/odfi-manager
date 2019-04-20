@@ -6,8 +6,12 @@ import org.odfi.wsb.fwapp.Site
 import org.odfi.wsb.fwapp.assets.AssetsResolver
 import org.odfi.wsb.fwapp.assets.ResourcesAssetSource
 import odfi.server.manager.ui.deployer.DeployerView
+import org.odfi.wsb.fwapp.swing.SwingPanelSite
+import org.odfi.wsb.fwapp.DefaultSite
+import odfi.server.manager.ui.run.RunConfigUI
+import org.odfi.wsb.fwapp.jmx.FWAPPJMX
 
-object ODFIManagerSite extends Site("/odfi") with IndesignModule {
+object ODFIManagerSite extends DefaultSite("/odfi") with FWAPPJMX  {
 
   // Site
   //-----------------
@@ -17,13 +21,35 @@ object ODFIManagerSite extends Site("/odfi") with IndesignModule {
     view(classOf[DeployerView])
   }
   
-  // Assets
+  "/cd/" is {
+    
+  }
+  
+  "/api" is {
+    
+    "/cd" is {
+      
+      "/reload" is {
+        
+      }
+    }
+  }
+  
+  // Runs
   //-------------
-  val assets = this.useDefaultAssets
-  assets.addAssetsSource("/odfi", new ResourcesAssetSource).addFilesSource("odfi")
-
+  "/run" is {
+    view(classOf[RunConfigUI])
+  }
+  
+  
+  //-- 404
   this.add404Intermediary
   
+  // API
+  //------------
+  
+  // Site
+  //--------------
   
   // LFC
   //------------------

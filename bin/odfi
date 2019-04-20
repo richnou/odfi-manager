@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.6
+#!/usr/bin/env tclsh86
 
 #puts "PS: $::env(PS1)"
 
@@ -203,19 +203,19 @@ if {[catch {package require nsf 2.0.0} res]} {
         
        
         
-        #puts "Can't load NSF, using local version for msys nt"
+       puts "Can't load NSF, using local version for msys nt"
         
-        set dir  $managerHome/lib/nsf/nsf2.0.0-msys64
-        source   $managerHome/lib/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        set dir  $managerHome/private/nsf/nsf2.0.0-msys64
+        source   $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
         
-        set     nxLocalPath $managerHome/lib/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
         
     } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
     
-        #puts "Can't load NSF, using local version for windows"
+        puts "Can't load NSF, using local version for windows"
         
-        set dir  $managerHome/lib/nsf/nsf2.0.0-win64
-        source   $managerHome/lib/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        set dir  $managerHome/private/nsf/nsf2.0.0-win64
+        source   $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
         set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
@@ -224,10 +224,10 @@ if {[catch {package require nsf 2.0.0} res]} {
        
     } else {
 
-        #puts "Can't load NSF, using local version for linux"
-        set dir $managerHome/lib/nsf/nsf2.0.0-linux/lib/nsf2.0.0
-        source  $dir/pkgIndex.tcl
-        set     nxLocalPath $dir/pkgIndex.tcl
+     puts "Can't load NSF, using local version for linux"
+     set dir  $managerHome/private/nsf/nsf2.0.0-linux/lib/nsf2.0.0
+     source $dir/pkgIndex.tcl
+     set     nxLocalPath $dir/pkgIndex.tcl
      
 
     }
@@ -405,7 +405,7 @@ try {
     
         
     
-        #puts "Command: $cmd"
+        puts "Command: $cmd"
     }
 
 }  on error {res option} {
