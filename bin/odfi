@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh86
+#!/usr/bin/env tclsh
 
 #puts "PS: $::env(PS1)"
 
@@ -197,7 +197,7 @@ if {[catch {package require nsf 2.0.0} res]} {
     
     ## Try to load local
     ########
-    #puts "Looking for NSF [string tolower $::tcl_platform(os)]"
+    puts "Looking for NSF [string tolower $::tcl_platform(os)]"
     if {[string match "*windows*" [string tolower $::tcl_platform(platform)]] && [string match "*msys64*" $::tcl_library]} {
         
         
@@ -205,19 +205,19 @@ if {[catch {package require nsf 2.0.0} res]} {
         
        puts "Can't load NSF, using local version for msys nt"
         
-        set dir  $managerHome/private/nsf/nsf2.0.0-msys64
-        source   $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        set dir  $libFolder/nsf/nsf2.0.0-msys64
+        source   $libFolder/nsf/nsf2.0.0-msys64/pkgIndex.tcl
         
-        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-msys64/pkgIndex.tcl
+        set     nxLocalPath $libFolder/nsf/nsf2.0.0-msys64/pkgIndex.tcl
         
     } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
     
         puts "Can't load NSF, using local version for windows"
         
-        set dir  $managerHome/private/nsf/nsf2.0.0-win64
-        source   $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        set dir  $libFolder/nsf/nsf2.0.0-win64
+        source   $libFolder/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
-        set     nxLocalPath $managerHome/private/nsf/nsf2.0.0-win64/pkgIndex.tcl
+        set     nxLocalPath $libFolder/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
    
         
@@ -225,7 +225,7 @@ if {[catch {package require nsf 2.0.0} res]} {
     } else {
 
      puts "Can't load NSF, using local version for linux"
-     set dir  $managerHome/private/nsf/nsf2.0.0-linux/lib/nsf2.0.0
+     set dir  $libFolder/nsf/nsf2.0.0-linux/lib/nsf2.0.0
      source $dir/pkgIndex.tcl
      set     nxLocalPath $dir/pkgIndex.tcl
      
@@ -263,7 +263,7 @@ if {[catch {package require Itcl} res]} {
 
 ### EOF Bootstraping ##################
 
-#package require odfi::errortracer 1.0.0
+package require odfi::errortracer 1.0.0
 
 
 ## Load language definition
@@ -340,9 +340,11 @@ $odfi gatherModules
 ########
 
 ## don't put logo on windows
-#if {[llength [array names ::env SHELL]] > 0} {
-    ##puts $asciiLogo
-#}
+if {[llength [array names ::env SHELL]] > 0} {
+    puts $asciiLogo
+} else {
+    puts $asciiLogo
+}
 
 
 

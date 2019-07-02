@@ -1,5 +1,9 @@
+
+:installPath set ../install/
+
 :module odfi {
     :version  3.0.0
+
     
     ## ODFI INFO Commands
     #############
