@@ -1,13 +1,19 @@
 #!/usr/bin/env tclsh
 
-#puts "PS: $::env(PS1)"
+puts "PS: $::env(PS1)"
 
 #return
 
 ## Puts override to handle adding comment marker to beginning of line
-set putsPrefix "#"
+set putsPrefix      "# (I) "
+set putsDebugPrefix "# (D) "
 proc pPuts args {
     ::puts ${::putsPrefix}[lindex $args end]
+}
+proc debugPuts args {
+    if {$::debug} {
+        ::puts ${::putsDebugPrefix}[lindex $args end]
+    }
 }
 
 
@@ -114,7 +120,11 @@ set asciiLogo {
 ##  - Find ODFI location
 #####################
 
-## Base Folder
+## Manager HOME
+## This is the folder where data is created and so on
+## ODFI Is user based
+##  - Here check the path and move to system installation if necessary
+## 
 ##########
 set managerHome [file normalize [file dirname [info script]]/../]
 if {![file exists $managerHome/lib/module.tm]} {
@@ -122,6 +132,8 @@ if {![file exists $managerHome/lib/module.tm]} {
 }
 set libFolder $managerHome/lib
 set etcFolder $managerHome/etc
+
+## The workspace is the user default folder used to checkout and install stuff
 set managerWorkspace [file normalize $::env(HOME)/.odfi]
 
 consumeArgument --workspace {
@@ -160,16 +172,27 @@ consumeArgument --info {
     exit 0
 
 }
+
+## Verbose 
 set verbose false
 consumeArgument -v {
     set verbose true
 }
 
-## Manager HOME
-## This is the folder where data is created and so on
-## ODFI Is user based
-##  - Here check the path and move to system installation if necessary
+## Debug
+set debug false
+consumeArgument -d {
+    set debug true
+}
 
+#puts "Debug Test: [array get ::env ODFI_DEBUG]"
+if {[llength [array get ::env ODFI_DEBUG]]==2} {
+    set debug true
+}
+
+###########################
+## Main
+##################################
 
 set nxLocalPath ""
 
@@ -178,15 +201,17 @@ set nxLocalPath ""
 ##
 
 set privateDevTCLLocation $managerWorkspace/private/dev-tcl
-
 if {[file exists $privateDevTCLLocation/tcl/pkgIndex.tcl]} {
+    debugPuts "Loading DEV-TCL Utility Library..."
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
+    debugPuts "Done..."
 } else {
-    puts "Initialising TCL Devlib..."
+    debugPuts "Initialising TCL Devlib..."
     ## Create parent folder
     file mkdir $privateDevTCLLocation
-    catch {exec git clone -b master https://github.com/unihd-cag/odfi-dev-tcl.git  $privateDevTCLLocation}
+    catch {exec git clone -b master https://github.com/opendesignflow/odfi-dev-tcl.git  $privateDevTCLLocation}
     source $privateDevTCLLocation/tcl/pkgIndex.tcl
+    debugPuts "Done..."
 }
 
 
@@ -213,10 +238,10 @@ if {[catch {package require nsf 2.0.0} res]} {
     } elseif {[string match "*windows*" [string tolower $::tcl_platform(platform)]]} {
     
         puts "Can't load NSF, using local version for windows"
-        
+
         set dir  $libFolder/nsf/nsf2.0.0-win64
         source   $libFolder/nsf/nsf2.0.0-win64/pkgIndex.tcl
-        
+
         set     nxLocalPath $libFolder/nsf/nsf2.0.0-win64/pkgIndex.tcl
         
    
@@ -224,24 +249,27 @@ if {[catch {package require nsf 2.0.0} res]} {
        
     } else {
 
-     puts "Can't load NSF, using local version for linux"
-     set dir  $libFolder/nsf/nsf2.0.0-linux/lib/nsf2.0.0
-     source $dir/pkgIndex.tcl
-     set     nxLocalPath $dir/pkgIndex.tcl
+        puts "Can't load NSF, using local version for linux"
+        set    dir  $libFolder/nsf/nsf2.0.0-linux/lib/nsf2.0.0
+        source     $dir/pkgIndex.tcl
+        set     nxLocalPath $dir/pkgIndex.tcl
      
 
     }
 
     
-} elseif {$verbose} {
+} elseif {$debug} {
 
-    puts "NSF loaded from system, use --privatensf to use local NSF"
+    debugPuts "NSF loaded from system, use --privatensf to use local NSF"
 }
 
+## ITCL
 if {[catch {package require Itcl} res]} {
     
     error "Cannot Load ITCL, no alternative for now"
 
+} else {
+    debugPuts "Loadged Itcl [puts [package versions Itcl]]..."
 }
 
 
