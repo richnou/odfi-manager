@@ -1,6 +1,8 @@
 :fileCommandHandler tcl {
         
     :log:setPrefix odfi.FCH.TCL
+
+    set :handlerScriptsLoc  [file dirname [info script]]/tcl_prescripts
     
     :onAccept {
     
@@ -16,21 +18,34 @@
     
         ## Create Environment
         set runEnv [[:getODFI] env:environment]
+
+        ## Set File to run
+        set fileToRun [$cmd path get]
         
         ## Create Interpreter
         puts "Creating slave interpreter"
         set runInterpreter [interp create]
         puts "Interp name: $runInterpreter"
+        $runInterpreter eval [list set script $fileToRun]
         #interp hide $runInterpreter open open
        #interp hide $runInterpreter puts puts
         #$runInterpreter alias open ::open
         #$runInterpreter alias puts ::puts
         
-        ## Source prescripts
+        set hLoc  ${:handlerScriptsLoc}
+        puts "Handler location: ${hLoc}"
+
+        ## Source this module's default pre-script
+        foreach script [glob ${:handlerScriptsLoc}/*.tcl] {
+            $runEnv preScript $script
+            #$runInterpreter eval $scripts
+        }
+
+        ## Source prescripts from Environment
         #set foundDevTCL false
         #puts "Prescripts: [[$runEnv shade ::odfi::environment::PreScript firstChild]  path get]"
         [$runEnv shade ::odfi::environment::PreScript children] @> filter { return [string match "*.tcl" [$it path get]] } @> foreach {
-             #puts "Sourcing prescript [$it path get]" 
+            #puts "Sourcing prescript [$it path get]" 
             $runInterpreter eval [list source [$it path get]]
             #if {[string match "*tcl/devlib*"  [$it path get]]} {
             #    set foundDevTCL true

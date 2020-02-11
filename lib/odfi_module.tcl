@@ -39,7 +39,7 @@
     
     :command modules {
     
-        :log:raw "Fast Informations on modules"
+        :log:raw "Fast Informations on installed modules"
         [:getODFI] shade { if {[string match ::odfi::Module [$it info class]] && [$it isPhysical]} { return true} else {return false} } walkDepthFirstPreorder {
 
             :log:raw "Module [$node getFullName] : [$node getDirectory]"
@@ -75,6 +75,9 @@
     :command repositories {
         
         :log:raw "Repositories information"
+        [:getODFI] shade ::odfi::repo::Repository walkDepthFirstPreorder {
+            :log:raw "Repository [$node getFullName]"
+        }
         [:getODFI] shade ::odfi::repo::Module walkDepthFirstPreorder {
             
             :log:raw "Module [$node getFullName]"
