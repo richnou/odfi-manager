@@ -225,7 +225,7 @@ if {[catch {package require nsf 2.0.0} res]} {
     } else {
 
      puts "Can't load NSF, using local version for linux"
-     set dir  $libFolder/nsf/nsf2.0.0-linux/lib/nsf2.0.0
+     set dir  $libFolder/nsf/nsf2.3.0-linux/lib/nsf2.3.0
      source $dir/pkgIndex.tcl
      set     nxLocalPath $dir/pkgIndex.tcl
      

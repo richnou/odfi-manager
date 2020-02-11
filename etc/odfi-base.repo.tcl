@@ -19,7 +19,7 @@
         :module devlib {
         
             :version master {
-                :location any any https://github.com/unihd-cag/odfi-dev-tcl.git
+                :location any any https://github.com/opendesignflow/odfi-dev-tcl.git
             }
         
         }
