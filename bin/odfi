@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 
-puts "PS: $::env(PS1)"
+#puts "PS: $::env(PS1)"
 
 #return
 
